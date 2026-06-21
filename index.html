@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YurbaEP — Documentation</title>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+
+    <link rel="stylesheet" href="yurba-ep.css">
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+<div class="header">
+    <div class="header-inner">
+        <h1>YurbaEP</h1>
+    </div>
+</div>
+
+<div class="layout">
+
+    <nav class="sidebar">
+        <div class="sidebar-group">
+            <div class="sidebar-group-title">Getting started</div>
+            <a href="#usage">Usage</a>
+        </div>
+        <div class="sidebar-group">
+            <div class="sidebar-group-title">Demo</div>
+            <a href="#demo">Live demo</a>
+        </div>
+        <div class="sidebar-group">
+            <div class="sidebar-group-title">API</div>
+            <a href="#create">create (static)</a>
+            <a href="#bind">bind</a>
+            <a href="#open">open</a>
+            <a href="#close">close</a>
+            <a href="#selectTab">selectTab</a>
+        </div>
+        <div class="sidebar-group">
+            <div class="sidebar-group-title">Events</div>
+            <a href="#events">Overview</a>
+            <a href="#event-select">yurbaep.select</a>
+            <a href="#event-open">yurbaep.open</a>
+            <a href="#event-close">yurbaep.close</a>
+            <a href="#event-load">yurbaep.load</a>
+        </div>
+        <div class="sidebar-group">
+            <div class="sidebar-group-title">Customization</div>
+            <a href="#custom-emojis">Custom emojis</a>
+            <a href="#category-icons">Category icons</a>
+            <a href="#emoji-json">Emoji JSON format</a>
+            <a href="#css-vars">CSS variables</a>
+        </div>
+    </nav>
+
+    <main>
+
+        <section>
+            <div class="doc-header">
+                <h2 class="doc-component-name">YurbaEP</h2>
+                <p class="doc-component-desc">Renders Noto Color Emoji (Google) from PNG files. Loads emoji data from a developer-supplied JSON with lazy pagination, dynamic category tabs, search, skin tone variant popups, and support for custom emojis.</p>
+            </div>
+
+            <div class="doc-section" id="usage">
+                <div class="doc-section-title">Usage</div>
+                <div class="gap-stack">
+                    <div class="code-block">
+                        <pre><code class="language-html">&lt;link rel="stylesheet" href="/dist/yurba-ep.min.css"&gt;
+&lt;script src="/dist/yurba-ep.min.js"&gt;&lt;/script&gt;</code></pre>
+                    </div>
+                    <p class="note">The picker is created entirely from JavaScript via the static <a href="#create"><code>YurbaEP.create()</code></a> factory — no HTML markup needed. With no arguments it loads the default Yurba CDN emoji set. It appends itself to <code>document.body</code> and returns the element.</p>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">const picker = YurbaEP.create()
+
+picker.bind(
+    document.querySelector('#emoji-btn'),
+    document.querySelector('#message-input')
+)</code></pre>
+                    </div>
+                    <div class="note">
+                        On selection a <a href="#event-select"><code>yurbaep.select</code></a> event always fires on the bound field. The picker also inserts the <code>:emoji-code:</code> shortcode at the caret of an <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code>; for a <code>contenteditable</code> target it inserts the emoji <code>&lt;img&gt;</code> when <a href="#create"><code>insertImage</code></a> is on, or leaves insertion to your event handler otherwise.
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <hr class="section-divider">
+
+        <section>
+            <div class="doc-header">
+                <h2 class="doc-component-name">Live demo</h2>
+            </div>
+            <div class="doc-section" id="demo">
+                <p class="note"><code>&lt;textarea&gt;</code> target:</p>
+                <div class="demo-card">
+                    <div class="demo-compose">
+                        <textarea class="demo-textarea" id="demo-input" placeholder="Type a message..." rows="1"></textarea>
+                        <button class="demo-emoji-btn" id="demo-btn">
+                            <span class="material-symbols-rounded">sentiment_satisfied</span>
+                        </button>
+                    </div>
+                    <div class="demo-output" id="demo-output"></div>
+                </div>
+                <p class="note"><code>&lt;input&gt;</code> target:</p>
+                <div class="demo-card">
+                    <div class="demo-compose">
+                        <input class="demo-input" id="demo-input-text" type="text" placeholder="Type a message...">
+                        <button class="demo-emoji-btn" id="demo-btn3">
+                            <span class="material-symbols-rounded">sentiment_satisfied</span>
+                        </button>
+                    </div>
+                    <div class="demo-output" id="demo-output3"></div>
+                </div>
+                <p class="note"><code>contenteditable</code> target:</p>
+                <div class="demo-card">
+                    <div class="demo-compose">
+                        <div class="demo-editable" id="demo-editable" contenteditable="true" data-placeholder="Type a message..."></div>
+                        <button class="demo-emoji-btn" id="demo-btn2">
+                            <span class="material-symbols-rounded">sentiment_satisfied</span>
+                        </button>
+                    </div>
+                    <div class="demo-output" id="demo-output2"></div>
+                </div>
+            </div>
+        </section>
+
+        <hr class="section-divider">
+
+        <section>
+            <div class="doc-header">
+                <h2 class="doc-component-name">API</h2>
+                <p class="doc-component-desc">All public methods available on the <code>&lt;yurba-ep&gt;</code> element instance.</p>
+            </div>
+
+            <div class="doc-section" id="create">
+                <div class="doc-section-title">create</div>
+                <div class="gap-stack">
+                    <div class="code-block">
+                        <pre><code class="language-javascript">const picker = YurbaEP.create(config)</code></pre>
+                    </div>
+                    <p class="note">Factory method — the only way to create a picker. Creates the <code>&lt;yurba-ep&gt;</code> element, appends it to <code>document.body</code>, and returns it.</p>
+                    <table class="api-table">
+                        <thead><tr><th>Config key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><code>title</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><code>'Pick an emoji'</code></td>
+                                <td>Text shown in the picker header.</td>
+                            </tr>
+                            <tr>
+                                <td><code>emojiJson</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><code>https://cdn.yurba.one/static/noto-emoji/emoji.json</code></td>
+                                <td>URL to the emoji JSON file.</td>
+                            </tr>
+                            <tr>
+                                <td><code>notoBase</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">string</span></td>
+                                <td><code>https://cdn.yurba.one/static/noto-emoji/png/72/</code></td>
+                                <td>Base URL for Noto Color Emoji PNGs.</td>
+                            </tr>
+                            <tr>
+                                <td><code>groupHtml</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">object</span></td>
+                                <td>—</td>
+                                <td>Category tab icon overrides, merged over the built-in defaults. Keys are emoji-metadata group names or <code>'all'</code>. See <a href="#category-icons">Category icons</a>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>customEmojis</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">array</span></td>
+                                <td>—</td>
+                                <td>Custom emoji categories appended after the standard ones. See <a href="#custom-emojis">Custom emojis</a>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>insertImage</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">boolean</span></td>
+                                <td><code>false</code></td>
+                                <td>Controls insertion into a <code>contenteditable</code> target. When <code>true</code> the picker inserts the emoji <code>&lt;img&gt;</code> (with <code>alt=":code:"</code> and <code>data-emoji="code"</code>). When <code>false</code> the picker inserts nothing into the editable — handle the <a href="#event-select"><code>yurbaep.select</code></a> event (which always fires) and render the emoji yourself. Has no effect on <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code>, which always receive the <code>:code:</code> shortcode.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="note">Minimal — uses the default Yurba CDN emoji set:</p>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">const picker = YurbaEP.create()
+picker.bind(emojiBtn, messageInput)</code></pre>
+                    </div>
+                    <p class="note">Full config:</p>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">const picker = YurbaEP.create({
+    title:       'Choose emoji',
+    emojiJson:   'https://cdn.yurba.one/static/noto-emoji/emoji.json',
+    notoBase:    'https://cdn.yurba.one/static/noto-emoji/png/72/',
+    insertImage: true,
+    groupHtml: {
+        'all':   '&lt;span class="material-symbols-rounded"&gt;more_horiz&lt;/span&gt;',
+        'Flags': '&lt;span class="material-symbols-rounded"&gt;flag&lt;/span&gt;',
+    },
+    customEmojis: [
+        {
+            name: 'Yurba',
+            id: 'yurba',
+            html: '&lt;span class="material-symbols-rounded"&gt;diamond&lt;/span&gt;',
+            emojis: [
+                {
+                    id: 'crystal',
+                    keywords: ['crystal', 'diamond', 'yurba'],
+                    src: 'https://cdn.yurba.one/static/emoji/yurba/png/crystal.png',
+                    animated: false
+                }
+            ]
+        }
+    ],
+})</code></pre>
+                    </div>
+                    <div class="note">The returned element is already in the DOM. You can call <code>.bind()</code> on it immediately.</div>
+                </div>
+            </div>
+
+            <div class="doc-section" id="bind">
+                <div class="doc-section-title">bind</div>
+                <div class="gap-stack">
+                    <div class="code-block">
+                        <pre><code class="language-javascript">picker.bind(button, input)</code></pre>
+                    </div>
+                    <table class="api-table">
+                        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><code>button</code> <span class="required-badge">required</span></td>
+                                <td><span class="type-badge">HTMLElement</span></td>
+                                <td>Trigger element. Clicking it opens the picker positioned relative to this element.</td>
+                            </tr>
+                            <tr>
+                                <td><code>input</code> <span class="required-badge">required</span></td>
+                                <td><span class="type-badge">HTMLInputElement</span> | <span class="type-badge">HTMLTextAreaElement</span> | <span class="type-badge">contenteditable</span></td>
+                                <td>Target field. On selection a <a href="#event-select"><code>yurbaep.select</code></a> event always fires on this element. The picker then inserts at the caret: for <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code> the <code>:code:</code> shortcode (into <code>.value</code>); for a <code>contenteditable</code> element the emoji <code>&lt;img&gt;</code> when <a href="#create"><code>insertImage</code></a> is on, otherwise nothing — leaving you to render it via the event. A native <code>input</code> event is dispatched after any built-in insertion.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">picker.bind(
+    document.querySelector('#emoji-btn'),
+    document.querySelector('#message-input')
+)</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="doc-section" id="open">
+                <div class="doc-section-title">open</div>
+                <div class="gap-stack">
+                    <div class="code-block">
+                        <pre><code class="language-javascript">picker.open()</code></pre>
+                    </div>
+                    <p class="note">Shows the picker. On the first call, fetches the emoji JSON and renders the initial tab. Subsequent calls skip the fetch. Uses the <code>emojiJson</code> passed to <a href="#create"><code>create()</code></a> (defaults to the Yurba CDN set).</p>
+                </div>
+            </div>
+
+            <div class="doc-section" id="close">
+                <div class="doc-section-title">close</div>
+                <div class="gap-stack">
+                    <div class="code-block">
+                        <pre><code class="language-javascript">picker.close()</code></pre>
+                    </div>
+                    <p class="note">Hides the picker. Also closes any open skin tone variant popup. Triggered automatically on outside click, page scroll, or the ✕ button.</p>
+                </div>
+            </div>
+
+            <div class="doc-section" id="selectTab">
+                <div class="doc-section-title">selectTab</div>
+                <div class="gap-stack">
+                    <div class="code-block">
+                        <pre><code class="language-javascript">picker.selectTab(tabId)</code></pre>
+                    </div>
+                    <table class="api-table">
+                        <thead><tr><th>Param</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><code>tabId</code> <span class="required-badge">required</span></td>
+                                <td><span class="type-badge">string</span></td>
+                                <td>Tab ID to activate. Tab IDs are derived from JSON group names — spaces and special characters replaced with underscores, lowercased. Custom category IDs are also accepted.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <p class="note">Built-in tab IDs, derived from the emoji-metadata group names: <code>all</code>, <code>smileys_and_emotions</code>, <code>people</code>, <code>animals_and_nature</code>, <code>food_and_drink</code>, <code>travel_and_places</code>, <code>activities_and_events</code>, <code>objects</code>, <code>symbols</code>, <code>flags</code>. Plus any custom category <code>id</code>.</p>
+                </div>
+            </div>
+
+        </section>
+
+        <hr class="section-divider">
+
+        <section>
+            <div class="doc-header">
+                <h2 class="doc-component-name">Events</h2>
+                <p class="doc-component-desc">All events are dispatched as bubbling <code>CustomEvent</code>s, namespaced under <code>yurbaep.*</code>. Lifecycle events (<code>open</code>, <code>close</code>, <code>load</code>) fire on the <code>&lt;yurba-ep&gt;</code> element; <code>yurbaep.select</code> fires on the bound field so you can intercept insertion.</p>
+            </div>
+
+            <div class="doc-section" id="events">
+                <div class="doc-section-title">Overview</div>
+                <div class="gap-stack">
+                    <table class="api-table">
+                        <thead><tr><th>Event</th><th>Fires on</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="#event-select"><code>yurbaep.select</code></a></td>
+                                <td>bound field</td>
+                                <td>An emoji was chosen. Always fires, before any built-in insertion.</td>
+                            </tr>
+                            <tr>
+                                <td><a href="#event-open"><code>yurbaep.open</code></a></td>
+                                <td><code>&lt;yurba-ep&gt;</code></td>
+                                <td>The picker became visible.</td>
+                            </tr>
+                            <tr>
+                                <td><a href="#event-close"><code>yurbaep.close</code></a></td>
+                                <td><code>&lt;yurba-ep&gt;</code></td>
+                                <td>The picker was hidden (outside click, scroll, ✕, or <code>close()</code>).</td>
+                            </tr>
+                            <tr>
+                                <td><a href="#event-load"><code>yurbaep.load</code></a></td>
+                                <td><code>&lt;yurba-ep&gt;</code></td>
+                                <td>The emoji JSON finished loading and the first tab rendered.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="doc-section" id="event-select">
+                <div class="doc-section-title">yurbaep.select</div>
+                <div class="gap-stack">
+                    <p class="note"><strong>Always</strong> fired on the <strong>bound field</strong> when an emoji is chosen, before any built-in insertion. The picker's own insertion is independent: <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code> always get the <code>:code:</code> shortcode; a <code>contenteditable</code> target gets the emoji <code>&lt;img&gt;</code> only when <a href="#create"><code>insertImage</code></a> is on — otherwise the picker leaves it untouched, so you render the emoji yourself in this handler.</p>
+                    <table class="api-table">
+                        <thead><tr><th><code>event.detail</code></th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>code</code></td><td><span class="type-badge">string</span></td><td>Emoji code, e.g. <code>grinning</code>.</td></tr>
+                            <tr><td><code>shortcode</code></td><td><span class="type-badge">string</span></td><td>The code wrapped in colons, e.g. <code>:grinning:</code>.</td></tr>
+                            <tr><td><code>src</code></td><td><span class="type-badge">string</span></td><td>Image URL of the emoji (Noto PNG or custom <code>src</code>).</td></tr>
+                            <tr><td><code>animated</code></td><td><span class="type-badge">boolean</span></td><td><code>true</code> for a custom emoji flagged <a href="#custom-emojis"><code>animated</code></a>; otherwise <code>false</code>.</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">// insertImage = false → the picker won't touch the
+// contenteditable, so you render the emoji however you like.
+const editor = document.querySelector('#editor')
+picker.bind(emojiBtn, editor)
+
+editor.addEventListener('yurbaep.select', (e) =&gt; {
+    const { code, shortcode, src } = e.detail
+
+    const img = document.createElement('img')
+    img.src = src
+    img.alt = shortcode
+    img.className = 'emoji'
+
+    editor.append(img)
+})</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="doc-section" id="event-open">
+                <div class="doc-section-title">yurbaep.open</div>
+                <div class="gap-stack">
+                    <p class="note">Fired on the <code>&lt;yurba-ep&gt;</code> element when the picker becomes visible.</p>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">picker.addEventListener('yurbaep.open', () =&gt; {
+    console.log('picker opened')
+})</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="doc-section" id="event-close">
+                <div class="doc-section-title">yurbaep.close</div>
+                <div class="gap-stack">
+                    <p class="note">Fired on the <code>&lt;yurba-ep&gt;</code> element when the picker is hidden — by outside click, page scroll, the ✕ button, or a <code>close()</code> call.</p>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">picker.addEventListener('yurbaep.close', () =&gt; {
+    console.log('picker closed')
+})</code></pre>
+                    </div>
+                </div>
+            </div>
+
+            <div class="doc-section" id="event-load">
+                <div class="doc-section-title">yurbaep.load</div>
+                <div class="gap-stack">
+                    <p class="note">Fired once on the <code>&lt;yurba-ep&gt;</code> element after the emoji JSON is fetched and the first tab is rendered.</p>
+                    <table class="api-table">
+                        <thead><tr><th><code>event.detail</code></th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>count</code></td><td><span class="type-badge">number</span></td><td>Total number of loaded emojis (standard + custom).</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">picker.addEventListener('yurbaep.load', (e) =&gt; {
+    console.log(`${e.detail.count} emojis ready`)
+})</code></pre>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <hr class="section-divider">
+
+        <section>
+            <div class="doc-header">
+                <h2 class="doc-component-name">Customization</h2>
+            </div>
+
+            <div class="doc-section" id="custom-emojis">
+                <div class="doc-section-title">Custom emojis</div>
+                <div class="gap-stack">
+                    <p class="note">Pass custom categories via the <code>customEmojis</code> config in <a href="#create"><code>create()</code></a>. They are appended after the standard categories. Each category must have a <code>name</code>, an <code>id</code>, an <code>html</code> string for the tab icon, and an <code>emojis</code> array.</p>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">const picker = YurbaEP.create({
+    customEmojis: [
+        {
+            name: 'Yurba',
+            id: 'yurba',
+            html: '&lt;span class="material-symbols-rounded"&gt;diamond&lt;/span&gt;',
+            emojis: [
+                {
+                    id: 'crystal',
+                    keywords: ['crystal', 'diamond', 'yurba'],
+                    src: 'https://cdn.yurba.one/static/emoji/yurba/png/crystal.png',
+                    animated: false
+                },
+                ...
+            ]
+        }
+    ]
+})</code></pre>
+                    </div>
+                    <table class="api-table">
+                        <thead><tr><th>Field</th><th>Type</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><code>id</code> <span class="required-badge">required</span></td>
+                                <td><span class="type-badge">string</span></td>
+                                <td>Emoji code. Inserted into the bound field as <code>:id:</code> on selection, and used as a search keyword.</td>
+                            </tr>
+                            <tr>
+                                <td><code>src</code> <span class="required-badge">required</span></td>
+                                <td><span class="type-badge">string</span></td>
+                                <td>Image URL, rendered as an <code>&lt;img&gt;</code>. Any format (PNG, SVG, GIF, WebP).</td>
+                            </tr>
+                            <tr>
+                                <td><code>keywords</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">string[]</span></td>
+                                <td>Extra search keywords. The <code>id</code> is always searchable.</td>
+                            </tr>
+                            <tr>
+                                <td><code>animated</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">boolean</span></td>
+                                <td>Marks the emoji as animated (default <code>false</code>). Exposed as <code>animated</code> in the <a href="#event-select"><code>yurbaep.select</code></a> event detail so you can render it differently — the picker itself does not treat it specially.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="doc-section" id="category-icons">
+                <div class="doc-section-title">Category icons</div>
+                <div class="gap-stack">
+                    <p class="note">Category tab icons are keyed by the emoji-metadata group name. Each value is the raw HTML rendered inside the <code>.y-ep__category</code> tab button. Override them via the <code>groupHtml</code> config in <a href="#create"><code>create()</code></a> — it is merged over the built-in defaults, so you only list the ones you want to change.</p>
+                    <div class="code-block">
+                        <pre><code class="language-javascript">const picker = YurbaEP.create({
+    groupHtml: {
+        'all':   '&lt;span class="material-symbols-rounded"&gt;more_horiz&lt;/span&gt;',
+        'Flags': '&lt;img src="https://cdn.yurba.one/static/emoji/yurba/png/crystal.png" width="20" height="20"&gt;',
+    },
+})</code></pre>
+                    </div>
+                    <p class="note">Available keys (match emoji-metadata group names exactly): <code>all</code>, <code>Smileys and emotions</code>, <code>People</code>, <code>Animals and nature</code>, <code>Food and drink</code>, <code>Travel and places</code>, <code>Activities and events</code>, <code>Objects</code>, <code>Symbols</code>, <code>Flags</code>.</p>
+                    <div class="note">
+                        Default icons use Material Symbols Rounded. Any HTML is accepted — <code>&lt;img&gt;</code>, <code>&lt;svg&gt;</code>, custom icon components, etc.
+                    </div>
+                </div>
+            </div>
+
+            <div class="doc-section" id="emoji-json">
+                <div class="doc-section-title">Emoji JSON format</div>
+                <div class="gap-stack">
+                    <p class="note">The picker natively supports the official <a href="https://github.com/googlefonts/emoji-metadata" target="_blank">Google emoji-metadata</a> format — an array of groups with decimal Unicode codepoints. Download <code>emoji_17_0_ordering.json</code> from that repo and host it yourself.</p>
+                    <div class="code-block">
+                        <pre><code class="language-json">[
+    {
+        "group": "Smileys and emotions",
+        "emoji": [
+            {
+                "base": [128075],
+                "alternates": [[128075], [128075, 127995], [128075, 127996],
+                               [128075, 127997], [128075, 127998], [128075, 127999]],
+                "emoticons": [],
+                "shortcodes": [":wave:"],
+                "animated": false,
+                "directional": false
+            }
+        ]
+    }
+]</code></pre>
+                    </div>
+                    <table class="api-table">
+                        <thead><tr><th>Field</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><code>group</code></td>
+                                <td>Category name. Each group becomes its own tab. Tab ID is derived automatically: <code>"Activities and events"</code> → <code>activities_and_events</code>. Unknown groups get a generic icon.</td>
+                            </tr>
+                            <tr>
+                                <td><code>emoji[].base</code></td>
+                                <td>Decimal Unicode codepoints. Converted to hex for Noto filename: <code>[128512]</code> → <code>emoji_u1f600.png</code>. U+FE0F (65039) is stripped automatically. Codepoints below U+1000 are zero-padded to 4 digits: <code>[35]</code> → <code>emoji_u0023.png</code>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>emoji[].alternates</code></td>
+                                <td>Skin tone (and gender) variant codepoint arrays. <code>alternates[0]</code> repeats <code>base</code> and is skipped. The remaining entries are shown in a popup when the emoji is clicked.</td>
+                            </tr>
+                            <tr>
+                                <td><code>emoji[].shortcodes</code></td>
+                                <td>Shortcode strings like <code>":wave:"</code>. The first one becomes the code appended to the input on selection (<code>:wave:</code>). Variants append a numeric suffix: <code>:wave_1:</code> … <code>:wave_5:</code>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>emoji[].emoticons</code></td>
+                                <td>Text emoticons like <code>":D"</code> — used as additional search keywords.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="doc-section" id="css-vars">
+                <div class="doc-section-title">CSS variables</div>
+                <div class="gap-stack">
+                    <p class="note">The picker defines its own CSS variables on <code>.y-ep</code> with sensible defaults. Override them on the <code>yurba-ep</code> element or any parent to match your design — no dependency on external theme variables.</p>
+                    <table class="api-table">
+                        <thead><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><code>--y-ep-bg</code></td>
+                                <td><code>#ffffff</code></td>
+                                <td>Picker background and gradient fade color.</td>
+                            </tr>
+                            <tr>
+                                <td><code>--y-ep-secondary</code></td>
+                                <td><code>#f2f2f7</code></td>
+                                <td>Secondary background — search bar, dividers, emoji hover, scrollbar.</td>
+                            </tr>
+                            <tr>
+                                <td><code>--y-ep-text</code></td>
+                                <td><code>#000000</code></td>
+                                <td>Text and icon color.</td>
+                            </tr>
+                            <tr>
+                                <td><code>--y-ep-accent</code></td>
+                                <td><code>#007aff</code></td>
+                                <td>Accent color — active category tab, loader spinner.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="code-block">
+                        <pre><code class="language-css">/* Dark theme example */
+yurba-ep {
+    --y-ep-bg:        #1c1c1e;
+    --y-ep-secondary: #2c2c2e;
+    --y-ep-text:      #ffffff;
+    --y-ep-accent:    #0a84ff;
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<script src="yurba-ep.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="index.js"></script>
+
+</body>
+</html>
