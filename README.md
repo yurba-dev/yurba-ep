@@ -1,6 +1,6 @@
-# YurbaEP
+# YurbaEmojiPicker
 
-Emoji picker Web Component. Renders Noto Color Emoji (Google) from PNG files loaded from CDN. Features lazy pagination, dynamic category tabs, search, skin tone variant popups, and support for custom emojis.
+Renders Noto Color Emoji (Google) from PNG files loaded from CDN. Features lazy pagination, dynamic category tabs, search, skin tone variant popups, and support for custom emojis.
 
 ## Installation
 
