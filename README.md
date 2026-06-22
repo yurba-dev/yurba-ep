@@ -45,7 +45,7 @@ The picker is created entirely from JavaScript via the static `YurbaEP.create()`
 
 | Method | Description |
 |---|---|
-| `bind(button, input)` | Attach a trigger button and target field (`input`, `textarea`, or `contenteditable`) |
+| `bind(button, input)` | Attach a trigger button and target field (`input`, `textarea`, or `contenteditable`). Clicking the trigger again while open closes the picker. |
 | `open()` | Show the picker |
 | `close()` | Hide the picker |
 | `selectTab(tabId)` | Switch to a category tab by ID |
@@ -75,8 +75,8 @@ All events bubble. `yurbaep.*` events fire on the picker element; `yurbaep.selec
 :root {
     --y-ep-bg:        #ffffff;
     --y-ep-secondary: #f2f2f7;
-    --y-ep-text:      #1d1d1f;
-    --y-ep-accent:    #3b6fff;
+    --y-ep-text:      #000000;
+    --y-ep-accent:    #007aff;
 }
 ```
 

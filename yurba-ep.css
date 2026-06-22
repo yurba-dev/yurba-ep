@@ -15,6 +15,13 @@
     background: var(--y-ep-bg);
     box-shadow: 0px 5px 20px 0px #0000001c;
     z-index: 10000;
+    transition: opacity .15s ease, transform .15s ease;
+}
+
+.y-ep.y-ep--hidden {
+    opacity: 0;
+    transform: scale(.97);
+    pointer-events: none;
 }
 
 @media (max-width: 768px) {
@@ -37,7 +44,6 @@
     box-sizing: content-box;
 }
 
-/* Header */
 .y-ep__header {
     display: flex;
     align-items: center;
@@ -80,7 +86,6 @@
     flex-shrink: 0;
 }
 
-/* Categories */
 .y-ep__categories-wrap {
     padding: 8px 15px;
     flex-shrink: 0;
@@ -118,7 +123,6 @@
     transform: scale(1.1);
 }
 
-/* Search */
 .y-ep__search-wrap {
     padding: 8px 15px;
     flex-shrink: 0;
@@ -161,7 +165,6 @@
     opacity: .4;
 }
 
-/* Body */
 .y-ep__body {
     position: relative;
     flex: 1;
@@ -195,7 +198,6 @@
     background: #a7a7a7;
 }
 
-/* Lists */
 .y-ep__list {
     display: none;
     align-items: flex-start;
@@ -215,7 +217,6 @@
     opacity: .45;
 }
 
-/* Emoji */
 .y-ep__emoji {
     display: block;
     width: 25px;
@@ -231,7 +232,6 @@
     background: var(--y-ep-secondary);
 }
 
-/* Gradient, loader */
 .y-ep__gradient {
     position: absolute;
     bottom: 0;
@@ -269,7 +269,6 @@
     }
 }
 
-/* Variant popup */
 .y-ep__variants {
     position: fixed;
     background: var(--y-ep-bg, #fff);

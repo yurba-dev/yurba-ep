@@ -17,7 +17,7 @@ class YurbaEP extends HTMLElement {
     connectedCallback() {
         const cfg = this._initConfig || {}
 
-        this.classList.add('y-ep')
+        this.classList.add('y-ep', 'y-ep--hidden')
         this.style.display = 'none'
 
         this._title        = cfg.title    ?? 'Pick an emoji'
@@ -29,6 +29,7 @@ class YurbaEP extends HTMLElement {
         this._chunks = {}
         this._allItems = []
         this._loaded = false
+        this._open = false
         this._activator = null
         this._input = null
         this._activeTab = 'all'
@@ -103,14 +104,17 @@ class YurbaEP extends HTMLElement {
 
     _bindScroll() {
         this._lists.addEventListener('scroll', () => {
-            if (this._detectBottom()) this._loadPage(this._activeTab)
+            if (this._detectBottom()) {
+                this._loadPage(this._activeTab)
+                this._ensureFilled(this._activeTab)
+            }
         })
     }
 
     _bindOutsideClick() {
         document.addEventListener('click', e => {
             if (
-                this.style.display !== 'none' &&
+                this._open &&
                 !this.contains(e.target) &&
                 (!this._activator || !this._activator.contains(e.target))
             ) {
@@ -121,20 +125,25 @@ class YurbaEP extends HTMLElement {
 
     _bindScrollClose() {
         document.addEventListener('scroll', e => {
-            if (this.style.display == 'none') return
+            if (!this._open) return
             if (this.contains(e.target)) return
             this.close()
         }, true)
     }
 
     close() {
-        const wasOpen = this.style.display !== 'none'
+        const wasOpen = this._open
+        this._open = false
 
         this._closeVariantPopup()
         this._activator = null
         this._input = null
-        this.style.display = 'none'
-        
+
+        this.classList.add('y-ep--hidden')
+        setTimeout(() => {
+            if (!this._open) this.style.display = 'none'
+        }, 150)
+
         if (wasOpen) this._emit('close')
     }
 
@@ -173,9 +182,14 @@ class YurbaEP extends HTMLElement {
     }
 
     _show() {
-        const wasHidden = this.style.display == 'none'
+        const wasHidden = !this._open
+        this._open = true
         this.style.display = 'flex'
         this._position()
+
+        void this.offsetWidth
+        requestAnimationFrame(() => this.classList.remove('y-ep--hidden'))
+
         if (wasHidden) this._emit('open')
     }
 
@@ -295,6 +309,7 @@ class YurbaEP extends HTMLElement {
             tab.classList.add('y-ep__list--loaded')
             this._loadPage(tabId)
         }
+        this._ensureFilled(tabId)
     }
 
     _hideSearch() {
@@ -509,7 +524,18 @@ class YurbaEP extends HTMLElement {
     }
 
     _detectBottom() {
-        return this._lists.scrollTop + this._lists.clientHeight >= this._lists.scrollHeight - 1
+        return this._lists.scrollTop + this._lists.clientHeight >= this._lists.scrollHeight - 150
+    }
+
+    _ensureFilled(tabId) {
+        const tab = this._lists.querySelector(`.y-ep__list[data-tab="${tabId}"]`)
+        if (!tab) return
+        let guard = 0
+        while (guard++ < 100 && this._lists.scrollHeight <= this._lists.clientHeight) {
+            const page = Number(tab.dataset.page)
+            if (!this._chunks[tabId]?.[page]) break
+            this._loadPage(tabId)
+        }
     }
 
     _chunkArray(array, size) {
@@ -522,6 +548,10 @@ class YurbaEP extends HTMLElement {
     bind(button, input) {
         button.addEventListener('click', e => {
             e.preventDefault()
+            if (this._open && this._activator === button) {
+                this.close()
+                return
+            }
             this._activator = button
             this._input = input
             this.open()

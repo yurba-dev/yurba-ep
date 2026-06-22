@@ -232,7 +232,7 @@ picker.bind(emojiBtn, messageInput)</code></pre>
                             <tr>
                                 <td><code>button</code> <span class="required-badge">required</span></td>
                                 <td><span class="type-badge">HTMLElement</span></td>
-                                <td>Trigger element. Clicking it opens the picker positioned relative to this element.</td>
+                                <td>Trigger element. Clicking it opens the picker positioned relative to this element; clicking it again while open closes the picker.</td>
                             </tr>
                             <tr>
                                 <td><code>input</code> <span class="required-badge">required</span></td>
@@ -319,7 +319,7 @@ picker.bind(emojiBtn, messageInput)</code></pre>
                             <tr>
                                 <td><a href="#event-close"><code>yurbaep.close</code></a></td>
                                 <td><code>&lt;yurba-ep&gt;</code></td>
-                                <td>The picker was hidden (outside click, scroll, ✕, or <code>close()</code>).</td>
+                                <td>The picker was hidden (outside click, scroll, ✕, trigger re-click, or <code>close()</code>).</td>
                             </tr>
                             <tr>
                                 <td><a href="#event-load"><code>yurbaep.load</code></a></td>
@@ -379,7 +379,7 @@ editor.addEventListener('yurbaep.select', (e) =&gt; {
             <div class="doc-section" id="event-close">
                 <div class="doc-section-title">yurbaep.close</div>
                 <div class="gap-stack">
-                    <p class="note">Fired on the <code>&lt;yurba-ep&gt;</code> element when the picker is hidden — by outside click, page scroll, the ✕ button, or a <code>close()</code> call.</p>
+                    <p class="note">Fired on the <code>&lt;yurba-ep&gt;</code> element when the picker is hidden — by outside click, page scroll, the ✕ button, re-clicking the trigger, or a <code>close()</code> call.</p>
                     <div class="code-block">
                         <pre><code class="language-javascript">picker.addEventListener('yurbaep.close', () =&gt; {
     console.log('picker closed')
