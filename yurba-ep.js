@@ -1,5 +1,5 @@
 class YurbaEP extends HTMLElement {
-    static _GROUP_HTML = {
+    static GROUP_HTML = {
         'Smileys and emotions': '<span class="material-symbols-rounded">face</span>',
         'People':               '<span class="material-symbols-rounded">group</span>',
         'Animals and nature':   '<span class="material-symbols-rounded">fertile</span>',
@@ -11,49 +11,57 @@ class YurbaEP extends HTMLElement {
         'Flags':                '<span class="material-symbols-rounded">flag</span>',
     }
 
-    static _EMOJI_JSON = 'https://cdn.yurba.one/static/noto-emoji/emoji.json'
-    static _NOTO_BASE  = 'https://cdn.yurba.one/static/noto-emoji/png/72/'
+    static EMOJI_JSON = 'https://cdn.yurba.one/static/noto-emoji/emoji.json'
+    static NOTO_BASE  = 'https://cdn.yurba.one/static/noto-emoji/png/72/'
+
+    static create(config = {}) {
+        const element = document.createElement('yurba-ep')
+        element.initConfig = config
+        document.body.appendChild(element)
+
+        return element
+    }
 
     connectedCallback() {
-        const cfg = this._initConfig || {}
+        const config = this.initConfig || {}
 
         this.classList.add('y-ep', 'y-ep--hidden')
         this.style.display = 'none'
 
-        this._title        = cfg.title    ?? 'Pick an emoji'
-        this._emojiJson    = cfg.emojiJson ?? YurbaEP._EMOJI_JSON
-        this._notoBaseUrl  = cfg.notoBase  ?? YurbaEP._NOTO_BASE
-        this._groupHtml    = Object.assign({}, YurbaEP._GROUP_HTML, cfg.groupHtml || {})
-        this._insertImage  = cfg.insertImage ?? false
-        this._customEmojis = cfg.customEmojis || []
-        this._chunks = {}
-        this._allItems = []
-        this._loaded = false
-        this._open = false
-        this._activator = null
-        this._input = null
-        this._activeTab = 'all'
+        this.pickerTitle = config.title ?? 'Pick an emoji'
+        this.emojiJson = config.emojiJson ?? YurbaEP.EMOJI_JSON
+        this.notoBaseUrl = config.notoBase ?? YurbaEP.NOTO_BASE
+        this.groupHtml = Object.assign({}, YurbaEP.GROUP_HTML, config.groupHtml || {})
+        this.insertImage = config.insertImage ?? false
+        this.customEmojis = config.customEmojis || []
+        this.chunks = {}
+        this.allItems = []
+        this.loaded = false
+        this.isOpen = false
+        this.activator = null
+        this.input = null
+        this.activeTab = 'all'
 
-        this.innerHTML = this._template()
+        this.innerHTML = this.template()
 
-        this._lists = this.querySelector('.y-ep__lists')
-        this._categories = this.querySelector('.y-ep__categories')
-        this._searchInput = this.querySelector('.y-ep__search')
-        this._gradient = this.querySelector('.y-ep__gradient')
-        this._loader = this.querySelector('.y-ep__loader')
+        this.lists = this.querySelector('.y-ep__lists')
+        this.categories = this.querySelector('.y-ep__categories')
+        this.searchInput = this.querySelector('.y-ep__search')
+        this.gradient = this.querySelector('.y-ep__gradient')
+        this.loader = this.querySelector('.y-ep__loader')
 
-        this._bindCategories()
-        this._bindClose()
-        this._bindSearch()
-        this._bindScroll()
-        this._bindOutsideClick()
-        this._bindScrollClose()
+        this.bindCategories()
+        this.bindClose()
+        this.bindSearch()
+        this.bindScroll()
+        this.bindOutsideClick()
+        this.bindScrollClose()
     }
 
-    _template() {
+    template() {
         return `
             <div class="y-ep__header">
-                <p class="y-ep__title">${this._title}</p>
+                <p class="y-ep__title">${this.pickerTitle}</p>
                 <button class="y-ep__close" data-action="close">
                     <span class="material-symbols-rounded">close</span>
                 </button>
@@ -61,7 +69,7 @@ class YurbaEP extends HTMLElement {
             <div class="y-ep__divider"></div>
             <div class="y-ep__categories-wrap">
                 <div class="y-ep__categories">
-                    <div class="y-ep__category" data-tab="all">${this._groupHtml['all'] ?? '<span class="material-symbols-rounded">more_horiz</span>'}</div>
+                    <div class="y-ep__category" data-tab="all">${this.groupHtml['all'] ?? '<span class="material-symbols-rounded">more_horiz</span>'}</div>
                 </div>
             </div>
             <div class="y-ep__divider"></div>
@@ -80,158 +88,158 @@ class YurbaEP extends HTMLElement {
             </div>`
     }
 
-    _bindCategories() {
-        this._categories.querySelectorAll('.y-ep__category').forEach(cat => {
-            cat.removeEventListener('click', cat._epHandler)
-            cat._epHandler = () => this.selectTab(cat.dataset.tab)
-            cat.addEventListener('click', cat._epHandler)
+    bindCategories() {
+        this.categories.querySelectorAll('.y-ep__category').forEach(category => {
+            category.removeEventListener('click', category.clickHandler)
+            category.clickHandler = () => this.selectTab(category.dataset.tab)
+            category.addEventListener('click', category.clickHandler)
         })
     }
 
-    _bindClose() {
-        this.querySelectorAll('[data-action="close"]').forEach(btn => {
-            btn.addEventListener('click', () => this.close())
+    bindClose() {
+        this.querySelectorAll('[data-action="close"]').forEach(button => {
+            button.addEventListener('click', () => this.close())
         })
     }
 
-    _bindSearch() {
-        this._searchInput.addEventListener('input', () => {
-            const q = this._searchInput.value.trim().toLowerCase()
-            if (!q) { this._hideSearch(); return }
-            if (this._loaded) this._renderSearch(q)
+    bindSearch() {
+        this.searchInput.addEventListener('input', () => {
+            const query = this.searchInput.value.trim().toLowerCase()
+            if (!query) { this.hideSearch(); return }
+            if (this.loaded) this.renderSearch(query)
         })
     }
 
-    _bindScroll() {
-        this._lists.addEventListener('scroll', () => {
-            if (this._detectBottom()) {
-                this._loadPage(this._activeTab)
-                this._ensureFilled(this._activeTab)
+    bindScroll() {
+        this.lists.addEventListener('scroll', () => {
+            if (this.detectBottom()) {
+                this.loadPage(this.activeTab)
+                this.ensureFilled(this.activeTab)
             }
         })
     }
 
-    _bindOutsideClick() {
-        document.addEventListener('click', e => {
+    bindOutsideClick() {
+        document.addEventListener('click', event => {
             if (
-                this._open &&
-                !this.contains(e.target) &&
-                (!this._activator || !this._activator.contains(e.target))
+                this.isOpen &&
+                !this.contains(event.target) &&
+                (!this.activator || !this.activator.contains(event.target))
             ) {
                 this.close()
             }
         })
     }
 
-    _bindScrollClose() {
-        document.addEventListener('scroll', e => {
-            if (!this._open) return
-            if (this.contains(e.target)) return
+    bindScrollClose() {
+        document.addEventListener('scroll', event => {
+            if (!this.isOpen) return
+            if (this.contains(event.target)) return
             this.close()
         }, true)
     }
 
     close() {
-        const wasOpen = this._open
-        this._open = false
+        const wasOpen = this.isOpen
+        this.isOpen = false
 
-        this._closeVariantPopup()
-        this._activator = null
-        this._input = null
+        this.closeVariantPopup()
+        this.activator = null
+        this.input = null
 
         this.classList.add('y-ep--hidden')
         setTimeout(() => {
-            if (!this._open) this.style.display = 'none'
+            if (!this.isOpen) this.style.display = 'none'
         }, 150)
 
-        if (wasOpen) this._emit('close')
+        if (wasOpen) this.emit('close')
     }
 
-    _emit(name, detail = {}) {
+    emit(name, detail = {}) {
         this.dispatchEvent(new CustomEvent(`yurba-ep.${name}`, { bubbles: true, detail }))
     }
 
     open() {
-        if (this._loaded) { this._show(); return }
+        if (this.loaded) { this.show(); return }
 
-        if (!this._emojiJson) {
+        if (!this.emojiJson) {
             console.warn('[yurba-ep] Emoji JSON not configured. Pass emojiJson to YurbaEP.create().')
             return
         }
 
-        this._show()
-        this._showLoader()
+        this.show()
+        this.showLoader()
 
-        fetch(this._emojiJson)
-            .then(r => {
-                if (!r.ok) throw new Error(`[yurba-ep] Failed to load emoji JSON: ${r.status} ${r.statusText}`)
-                return r.json()
+        fetch(this.emojiJson)
+            .then(response => {
+                if (!response.ok) throw new Error(`[yurba-ep] Failed to load emoji JSON: ${response.status} ${response.statusText}`)
+                return response.json()
             })
             .then(groups => {
-                this._processMetadata(groups)
-                this._customEmojis.forEach(cat => this._addCustomCategory(cat))
-                this._chunks.all = this._chunkArray(this._allItems, 100)
-                this._loaded = true
+                this.processMetadata(groups)
+                this.customEmojis.forEach(category => this.addCustomCategory(category))
+                this.chunks.all = this.chunkArray(this.allItems, 100)
+                this.loaded = true
                 this.selectTab('all')
-                this._emit('load', { count: this._allItems.filter(i => i.type === 'emoji').length })
+                this.emit('load', { count: this.allItems.filter(item => item.type === 'emoji').length })
             })
-            .catch(err => {
-                this._hideLoader()
-                console.error(err)
+            .catch(error => {
+                this.hideLoader()
+                console.error(error)
             })
     }
 
-    _show() {
-        const wasHidden = !this._open
-        this._open = true
+    show() {
+        const wasHidden = !this.isOpen
+        this.isOpen = true
         this.style.display = 'flex'
-        this._position()
+        this.position()
 
         void this.offsetWidth
         requestAnimationFrame(() => this.classList.remove('y-ep--hidden'))
 
-        if (wasHidden) this._emit('open')
+        if (wasHidden) this.emit('open')
     }
 
-    _position() {
-        if (!this._activator) return
+    position() {
+        if (!this.activator) return
 
-        const rect = this._activator.getBoundingClientRect()
-        const w = this.offsetWidth
-        const h = this.offsetHeight
+        const rect = this.activator.getBoundingClientRect()
+        const width = this.offsetWidth
+        const height = this.offsetHeight
         const gap = 4
-        const vw = window.innerWidth
-        const vh = window.innerHeight
+        const viewportWidth = window.innerWidth
+        const viewportHeight = window.innerHeight
 
         let left = rect.right
-        if (left + w > vw - gap) left = rect.right - w
-        if (left + w > vw - gap) left = vw - w - gap
+        if (left + width > viewportWidth - gap) left = rect.right - width
+        if (left + width > viewportWidth - gap) left = viewportWidth - width - gap
         if (left < gap) left = gap
 
         let top = rect.bottom
-        if (top + h > vh - gap) top = rect.top - h
-        if (top + h > vh - gap) top = vh - h - gap
+        if (top + height > viewportHeight - gap) top = rect.top - height
+        if (top + height > viewportHeight - gap) top = viewportHeight - height - gap
         if (top < gap) top = gap
 
         this.style.left = (window.scrollX + left) + 'px'
         this.style.top = (window.scrollY + top) + 'px'
     }
 
-    _processMetadata(groups) {
+    processMetadata(groups) {
         groups.forEach(group => {
-            const tabId = this._groupToTabId(group.group)
-            const iconHtml = this._groupHtml[group.group]
+            const tabId = this.groupToTabId(group.group)
+            const iconHtml = this.groupHtml[group.group]
                 ?? '<span class="material-symbols-rounded">emoji_emotions</span>'
 
-            this._categories.insertAdjacentHTML('beforeend',
+            this.categories.insertAdjacentHTML('beforeend',
                 `<div class="y-ep__category" data-tab="${tabId}">${iconHtml}</div>`)
-            this._lists.insertAdjacentHTML('beforeend',
+            this.lists.insertAdjacentHTML('beforeend',
                 `<div class="y-ep__list" data-tab="${tabId}" data-page="0"></div>`)
 
             const tabItems = []
             const head = { type: 'category', name: group.group, id: tabId }
             tabItems.push(head)
-            this._allItems.push(head)
+            this.allItems.push(head)
 
             group.emoji.forEach(entry => {
                 const code = entry.shortcodes[0]?.replace(/:/g, '')
@@ -241,159 +249,157 @@ class YurbaEP extends HTMLElement {
                     code,
                     codepoints: entry.base,
                     keywords: [
-                        ...entry.shortcodes.map(s => s.replace(/:/g, '')),
+                        ...entry.shortcodes.map(shortcode => shortcode.replace(/:/g, '')),
                         ...entry.emoticons,
                     ],
                     alternates: entry.alternates?.length > 1 ? entry.alternates.slice(1) : null,
                 }
                 tabItems.push(item)
-                this._allItems.push(item)
+                this.allItems.push(item)
             })
 
-            this._chunks[tabId] = this._chunkArray(tabItems, 100)
+            this.chunks[tabId] = this.chunkArray(tabItems, 100)
         })
 
-        this._bindCategories()
+        this.bindCategories()
     }
 
-    _groupToTabId(name) {
+    groupToTabId(name) {
         return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
     }
 
-    _addCustomCategory(cat) {
-        const head = { type: 'category', name: cat.name, id: cat.id }
+    addCustomCategory(category) {
+        const head = { type: 'category', name: category.name, id: category.id }
         const items = [head]
-        this._allItems.push(head)
+        this.allItems.push(head)
 
-        cat.emojis.forEach(em => {
-            if (!em.src) return
+        category.emojis.forEach(emoji => {
+            if (!emoji.src) return
             const item = {
                 type: 'emoji',
-                code: em.id,
+                code: emoji.id,
                 codepoints: null,
-                customSrc: em.src,
-                animated: !!em.animated,
-                keywords: [em.id, ...(em.keywords || [])]
+                customSrc: emoji.src,
+                animated: !!emoji.animated,
+                keywords: [emoji.id, ...(emoji.keywords || [])]
             }
             items.push(item)
-            this._allItems.push(item)
+            this.allItems.push(item)
         })
 
-        this._chunks[cat.id] = this._chunkArray(items, 100)
+        this.chunks[category.id] = this.chunkArray(items, 100)
 
-        if (cat.html) {
-            this._categories.insertAdjacentHTML('beforeend',
-                `<div class="y-ep__category" data-tab="${cat.id}">${cat.html}</div>`)
-            this._bindCategories()
-            this._lists.insertAdjacentHTML('beforeend',
-                `<div class="y-ep__list" data-tab="${cat.id}" data-page="0"></div>`)
+        if (category.html) {
+            this.categories.insertAdjacentHTML('beforeend',
+                `<div class="y-ep__category" data-tab="${category.id}">${category.html}</div>`)
+            this.bindCategories()
+            this.lists.insertAdjacentHTML('beforeend',
+                `<div class="y-ep__list" data-tab="${category.id}" data-page="0"></div>`)
         }
     }
 
     selectTab(tabId) {
-        this._activeTab = tabId
-        this._searchInput.value = ''
-        this._hideSearch()
+        this.activeTab = tabId
+        this.searchInput.value = ''
+        this.hideSearch()
 
-        this._categories.querySelectorAll('.y-ep__category').forEach(c => c.classList.remove('y-ep__category--active'))
-        this._categories.querySelector(`[data-tab="${tabId}"]`)?.classList.add('y-ep__category--active')
+        this.categories.querySelectorAll('.y-ep__category').forEach(category => category.classList.remove('y-ep__category--active'))
+        this.categories.querySelector(`[data-tab="${tabId}"]`)?.classList.add('y-ep__category--active')
 
-        this._lists.querySelectorAll('.y-ep__list:not(.y-ep__list--search)').forEach(t => t.style.display = 'none')
-        const tab = this._lists.querySelector(`.y-ep__list[data-tab="${tabId}"]`)
+        this.lists.querySelectorAll('.y-ep__list:not(.y-ep__list--search)').forEach(list => list.style.display = 'none')
+        const tab = this.lists.querySelector(`.y-ep__list[data-tab="${tabId}"]`)
         if (!tab) return
 
         tab.style.display = 'flex'
-        this._lists.scrollTop = 0
+        this.lists.scrollTop = 0
 
         if (!tab.classList.contains('y-ep__list--loaded')) {
             tab.classList.add('y-ep__list--loaded')
-            this._loadPage(tabId)
+            this.loadPage(tabId)
         }
-        this._ensureFilled(tabId)
+        this.ensureFilled(tabId)
     }
 
-    _hideSearch() {
-        const s = this._lists.querySelector('.y-ep__list--search')
-        if (s) s.style.display = 'none'
+    hideSearch() {
+        const searchList = this.lists.querySelector('.y-ep__list--search')
+        if (searchList) searchList.style.display = 'none'
 
-        const tab = this._lists.querySelector(`.y-ep__list[data-tab="${this._activeTab}"]`)
+        const tab = this.lists.querySelector(`.y-ep__list[data-tab="${this.activeTab}"]`)
         if (tab) tab.style.display = 'flex'
     }
 
-    _loadPage(tabId) {
-        const tab = this._lists.querySelector(`.y-ep__list[data-tab="${tabId}"]`)
+    loadPage(tabId) {
+        const tab = this.lists.querySelector(`.y-ep__list[data-tab="${tabId}"]`)
         if (!tab) return
         const page = Number(tab.dataset.page)
-        const chunk = this._chunks[tabId]?.[page]
+        const chunk = this.chunks[tabId]?.[page]
         if (!chunk) return
 
-        this._showLoader()
+        this.showLoader()
 
         chunk.forEach(item => {
             if (item.type == 'category') {
-                const sep = document.createElement('div')
-                sep.className = 'y-ep__sep'
-                sep.textContent = item.name
-                tab.appendChild(sep)
+                const separator = document.createElement('div')
+                separator.className = 'y-ep__sep'
+                separator.textContent = item.name
+                tab.appendChild(separator)
             } else {
-                tab.appendChild(this._makeEmojiEl(item))
+                tab.appendChild(this.makeEmojiElement(item))
             }
         })
 
         tab.dataset.page = page + 1
-        this._hideLoader()
+        this.hideLoader()
     }
 
-    _renderSearch(q) {
-        this._lists.querySelectorAll('.y-ep__list:not(.y-ep__list--search)').forEach(t => t.style.display = 'none')
+    renderSearch(query) {
+        this.lists.querySelectorAll('.y-ep__list:not(.y-ep__list--search)').forEach(list => list.style.display = 'none')
 
-        let results = this._lists.querySelector('.y-ep__list--search')
+        let results = this.lists.querySelector('.y-ep__list--search')
         if (!results) {
             results = document.createElement('div')
             results.className = 'y-ep__list y-ep__list--search'
-            this._lists.appendChild(results)
+            this.lists.appendChild(results)
         }
 
         results.innerHTML = ''
         results.style.display = 'flex'
 
-        const matches = this._allItems.filter(item =>
+        const matches = this.allItems.filter(item =>
             item.type == 'emoji' &&
-            item.keywords?.some(k => k.includes(q))
+            item.keywords?.some(keyword => keyword.includes(query))
         ).slice(0, 80)
 
-        matches.forEach(item => results.appendChild(this._makeEmojiEl(item)))
+        matches.forEach(item => results.appendChild(this.makeEmojiElement(item)))
     }
 
-    _makeEmojiEl(item) {
-        let el
+    makeEmojiElement(item) {
+        const element = document.createElement('img')
+        element.className = 'y-ep__emoji'
 
         if (item.customSrc) {
-            el = document.createElement('img')
-            el.className = 'y-ep__emoji'
-            el.src = item.customSrc
+            element.src = item.customSrc
         } else {
-            el = document.createElement('img')
-            el.className = 'y-ep__emoji'
-            el.src = this._notoUrl(item.codepoints)
-            el.onerror = () => { el.style.display = 'none' }
+            element.src = this.notoUrl(item.codepoints)
+            element.onerror = () => { element.style.display = 'none' }
         }
 
-        el.dataset.code = item.code
-        el.dataset.names = item.keywords?.join(',') ?? item.code
-        el.addEventListener('click', e => {
+        element.dataset.code = item.code
+        element.dataset.names = item.keywords?.join(',') ?? item.code
+        element.addEventListener('click', event => {
             if (item.alternates?.length) {
-                e.stopPropagation()
-                this._showVariantPopup(item, el)
+                event.stopPropagation()
+                this.showVariantPopup(item, element)
             } else {
-                this._insert(item.code, el.src, item.animated)
+                this.insert(item.code, element.src, item.animated)
             }
         })
-        return el
+
+        return element
     }
 
-    _insert(code, src, animated = false) {
-        const target = this._input
+    insert(code, src, animated = false) {
+        const target = this.input
         if (!target) return
 
         target.dispatchEvent(new CustomEvent('yurba-ep.select', {
@@ -402,19 +408,19 @@ class YurbaEP extends HTMLElement {
         }))
 
         if (target.isContentEditable) {
-            if (!this._insertImage || !src) return
+            if (!this.insertImage || !src) return
 
             target.focus()
-            const node = this._makeInsertImg(code, src)
-            const sel = window.getSelection()
-            if (sel?.rangeCount && target.contains(sel.anchorNode)) {
-                const range = sel.getRangeAt(0)
+            const node = this.makeInsertImage(code, src)
+            const selection = window.getSelection()
+            if (selection?.rangeCount && target.contains(selection.anchorNode)) {
+                const range = selection.getRangeAt(0)
                 range.deleteContents()
                 range.insertNode(node)
                 range.setStartAfter(node)
                 range.collapse(true)
-                sel.removeAllRanges()
-                sel.addRange(range)
+                selection.removeAllRanges()
+                selection.addRange(range)
             } else {
                 target.appendChild(node)
             }
@@ -425,8 +431,8 @@ class YurbaEP extends HTMLElement {
 
             if (start != null && end != null) {
                 target.value = target.value.slice(0, start) + text + target.value.slice(end)
-                const pos = start + text.length
-                target.selectionStart = target.selectionEnd = pos
+                const position = start + text.length
+                target.selectionStart = target.selectionEnd = position
             } else {
                 target.value += text
             }
@@ -435,135 +441,127 @@ class YurbaEP extends HTMLElement {
         target.dispatchEvent(new Event('input', { bubbles: true }))
     }
 
-    _makeInsertImg(code, src) {
-        const img = document.createElement('img')
-        img.src = src
-        img.alt = `:${code}:`
-        img.dataset.emoji = code
+    makeInsertImage(code, src) {
+        const image = document.createElement('img')
+        image.src = src
+        image.alt = `:${code}:`
+        image.dataset.emoji = code
 
-        return img
+        return image
     }
 
-    _showVariantPopup(item, triggerEl) {
-        this._closeVariantPopup()
+    showVariantPopup(item, triggerElement) {
+        this.closeVariantPopup()
 
         const popup = document.createElement('div')
         popup.className = 'y-ep__variants'
 
-        const makeImg = (codepoints, code) => {
-            const img = document.createElement('img')
-            img.className = 'y-ep__emoji'
-            img.src = this._notoUrl(codepoints)
-            img.onerror = () => { img.style.display = 'none' }
-            img.addEventListener('click', e => {
-                e.stopPropagation()
-                this._insert(code, img.src)
-                this._closeVariantPopup()
+        const createImage = (codepoints, code) => {
+            const image = document.createElement('img')
+            image.className = 'y-ep__emoji'
+            image.src = this.notoUrl(codepoints)
+            image.onerror = () => { image.style.display = 'none' }
+            image.addEventListener('click', event => {
+                event.stopPropagation()
+                this.insert(code, image.src)
+                this.closeVariantPopup()
             })
 
-            return img
+            return image
         }
 
-        popup.appendChild(makeImg(item.codepoints, item.code))
-        item.alternates.forEach((altCps, i) => {
-            popup.appendChild(makeImg(altCps, `${item.code}_${i + 1}`))
+        popup.appendChild(createImage(item.codepoints, item.code))
+        item.alternates.forEach((alternateCodepoints, index) => {
+            popup.appendChild(createImage(alternateCodepoints, `${item.code}_${index + 1}`))
         })
 
         document.body.appendChild(popup)
-        this._variantPopup = popup
+        this.variantPopup = popup
 
-        const tRect = triggerEl.getBoundingClientRect()
-        const pw = popup.offsetWidth
-        const ph = popup.offsetHeight
+        const triggerRect = triggerElement.getBoundingClientRect()
+        const popupWidth = popup.offsetWidth
+        const popupHeight = popup.offsetHeight
 
-        let top = tRect.bottom + 6
-        if (top + ph > window.innerHeight - 4) top = tRect.top - ph - 6
+        let top = triggerRect.bottom + 6
+        if (top + popupHeight > window.innerHeight - 4) top = triggerRect.top - popupHeight - 6
 
-        let left = tRect.left
-        if (left + pw > window.innerWidth - 4) left = window.innerWidth - pw - 4
+        let left = triggerRect.left
+        if (left + popupWidth > window.innerWidth - 4) left = window.innerWidth - popupWidth - 4
         if (left < 4) left = 4
 
         popup.style.top = top + 'px'
         popup.style.left = left + 'px'
 
-        this._variantClickAway = e => {
-            if (!popup.contains(e.target)) this._closeVariantPopup()
+        this.variantClickAway = event => {
+            if (!popup.contains(event.target)) this.closeVariantPopup()
         }
 
-        setTimeout(() => document.addEventListener('click', this._variantClickAway), 0)
+        setTimeout(() => document.addEventListener('click', this.variantClickAway), 0)
     }
 
-    _closeVariantPopup() {
-        if (this._variantPopup) {
-            this._variantPopup.remove()
-            this._variantPopup = null
+    closeVariantPopup() {
+        if (this.variantPopup) {
+            this.variantPopup.remove()
+            this.variantPopup = null
         }
-        if (this._variantClickAway) {
-            document.removeEventListener('click', this._variantClickAway)
-            this._variantClickAway = null
+        if (this.variantClickAway) {
+            document.removeEventListener('click', this.variantClickAway)
+            this.variantClickAway = null
         }
     }
 
-    _notoUrl(codepoints) {
+    notoUrl(codepoints) {
         const hex = codepoints
-            .filter(cp => cp !== 65039)
-            .map(cp => cp.toString(16).padStart(4, '0'))
+            .filter(codepoint => codepoint !== 65039)
+            .map(codepoint => codepoint.toString(16).padStart(4, '0'))
             .join('_')
 
-        return `${this._notoBaseUrl}emoji_u${hex}.png`
+        return `${this.notoBaseUrl}emoji_u${hex}.png`
     }
 
-    _showLoader() {
-        this._loader.style.display = 'block'
-        this._gradient.classList.add('y-ep__gradient--loading')
+    showLoader() {
+        this.loader.style.display = 'block'
+        this.gradient.classList.add('y-ep__gradient--loading')
     }
 
-    _hideLoader() {
-        this._loader.style.display = 'none'
-        this._gradient.classList.remove('y-ep__gradient--loading')
+    hideLoader() {
+        this.loader.style.display = 'none'
+        this.gradient.classList.remove('y-ep__gradient--loading')
     }
 
-    _detectBottom() {
-        return this._lists.scrollTop + this._lists.clientHeight >= this._lists.scrollHeight - 150
+    detectBottom() {
+        return this.lists.scrollTop + this.lists.clientHeight >= this.lists.scrollHeight - 150
     }
 
-    _ensureFilled(tabId) {
-        const tab = this._lists.querySelector(`.y-ep__list[data-tab="${tabId}"]`)
+    ensureFilled(tabId) {
+        const tab = this.lists.querySelector(`.y-ep__list[data-tab="${tabId}"]`)
         if (!tab) return
         let guard = 0
-        while (guard++ < 100 && this._lists.scrollHeight <= this._lists.clientHeight) {
+        while (guard++ < 100 && this.lists.scrollHeight <= this.lists.clientHeight) {
             const page = Number(tab.dataset.page)
-            if (!this._chunks[tabId]?.[page]) break
-            this._loadPage(tabId)
+            if (!this.chunks[tabId]?.[page]) break
+            this.loadPage(tabId)
         }
     }
 
-    _chunkArray(array, size) {
+    chunkArray(array, size) {
         const result = []
-        for (let i = 0; i < array.length; i += size) result.push(array.slice(i, i + size))
+        for (let index = 0; index < array.length; index += size) result.push(array.slice(index, index + size))
 
         return result
     }
 
     bind(button, input) {
-        button.addEventListener('click', e => {
-            e.preventDefault()
-            if (this._open && this._activator === button) {
+        button.addEventListener('click', event => {
+            event.preventDefault()
+            if (this.isOpen && this.activator === button) {
                 this.close()
                 return
             }
-            this._activator = button
-            this._input = input
+            this.activator = button
+            this.input = input
             this.open()
         })
-    }
-
-    static create(config = {}) {
-        const el = document.createElement('yurba-ep')
-        el._initConfig = config
-        document.body.appendChild(el)
-
-        return el
     }
 }
 
