@@ -148,7 +148,7 @@ class YurbaEP extends HTMLElement {
     }
 
     _emit(name, detail = {}) {
-        this.dispatchEvent(new CustomEvent(`yurbaep.${name}`, { bubbles: true, detail }))
+        this.dispatchEvent(new CustomEvent(`yurba-ep.${name}`, { bubbles: true, detail }))
     }
 
     open() {
@@ -396,7 +396,7 @@ class YurbaEP extends HTMLElement {
         const target = this._input
         if (!target) return
 
-        target.dispatchEvent(new CustomEvent('yurbaep.select', {
+        target.dispatchEvent(new CustomEvent('yurba-ep.select', {
             bubbles: true,
             detail: { code, shortcode: `:${code}:`, src, animated: !!animated },
         }))

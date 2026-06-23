@@ -41,10 +41,10 @@
         <div class="sidebar-group">
             <div class="sidebar-group-title">Events</div>
             <a href="#events">Overview</a>
-            <a href="#event-select">yurbaep.select</a>
-            <a href="#event-open">yurbaep.open</a>
-            <a href="#event-close">yurbaep.close</a>
-            <a href="#event-load">yurbaep.load</a>
+            <a href="#event-select">yurba-ep.select</a>
+            <a href="#event-open">yurba-ep.open</a>
+            <a href="#event-close">yurba-ep.close</a>
+            <a href="#event-load">yurba-ep.load</a>
         </div>
         <div class="sidebar-group">
             <div class="sidebar-group-title">Customization</div>
@@ -80,7 +80,7 @@ picker.bind(
 )</code></pre>
                     </div>
                     <div class="note">
-                        On selection a <a href="#event-select"><code>yurbaep.select</code></a> event always fires on the bound field. The picker also inserts the <code>:emoji-code:</code> shortcode at the caret of an <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code>; for a <code>contenteditable</code> target it inserts the emoji <code>&lt;img&gt;</code> when <a href="#create"><code>insertImage</code></a> is on, or leaves insertion to your event handler otherwise.
+                        On selection a <a href="#event-select"><code>yurba-ep.select</code></a> event always fires on the bound field. The picker also inserts the <code>:emoji-code:</code> shortcode at the caret of an <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code>; for a <code>contenteditable</code> target it inserts the emoji <code>&lt;img&gt;</code> when <a href="#create"><code>insertImage</code></a> is on, or leaves insertion to your event handler otherwise.
                     </div>
                 </div>
             </div>
@@ -179,7 +179,7 @@ picker.bind(
                                 <td><code>insertImage</code> <span class="optional-badge">optional</span></td>
                                 <td><span class="type-badge">boolean</span></td>
                                 <td><code>false</code></td>
-                                <td>Controls insertion into a <code>contenteditable</code> target. When <code>true</code> the picker inserts the emoji <code>&lt;img&gt;</code> (with <code>alt=":code:"</code> and <code>data-emoji="code"</code>). When <code>false</code> the picker inserts nothing into the editable — handle the <a href="#event-select"><code>yurbaep.select</code></a> event (which always fires) and render the emoji yourself. Has no effect on <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code>, which always receive the <code>:code:</code> shortcode.</td>
+                                <td>Controls insertion into a <code>contenteditable</code> target. When <code>true</code> the picker inserts the emoji <code>&lt;img&gt;</code> (with <code>alt=":code:"</code> and <code>data-emoji="code"</code>). When <code>false</code> the picker inserts nothing into the editable — handle the <a href="#event-select"><code>yurba-ep.select</code></a> event (which always fires) and render the emoji yourself. Has no effect on <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code>, which always receive the <code>:code:</code> shortcode.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -237,7 +237,7 @@ picker.bind(emojiBtn, messageInput)</code></pre>
                             <tr>
                                 <td><code>input</code> <span class="required-badge">required</span></td>
                                 <td><span class="type-badge">HTMLInputElement</span> | <span class="type-badge">HTMLTextAreaElement</span> | <span class="type-badge">contenteditable</span></td>
-                                <td>Target field. On selection a <a href="#event-select"><code>yurbaep.select</code></a> event always fires on this element. The picker then inserts at the caret: for <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code> the <code>:code:</code> shortcode (into <code>.value</code>); for a <code>contenteditable</code> element the emoji <code>&lt;img&gt;</code> when <a href="#create"><code>insertImage</code></a> is on, otherwise nothing — leaving you to render it via the event. A native <code>input</code> event is dispatched after any built-in insertion.</td>
+                                <td>Target field. On selection a <a href="#event-select"><code>yurba-ep.select</code></a> event always fires on this element. The picker then inserts at the caret: for <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code> the <code>:code:</code> shortcode (into <code>.value</code>); for a <code>contenteditable</code> element the emoji <code>&lt;img&gt;</code> when <a href="#create"><code>insertImage</code></a> is on, otherwise nothing — leaving you to render it via the event. A native <code>input</code> event is dispatched after any built-in insertion.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -297,7 +297,7 @@ picker.bind(emojiBtn, messageInput)</code></pre>
         <section>
             <div class="doc-header">
                 <h2 class="doc-component-name">Events</h2>
-                <p class="doc-component-desc">All events are dispatched as bubbling <code>CustomEvent</code>s, namespaced under <code>yurbaep.*</code>. Lifecycle events (<code>open</code>, <code>close</code>, <code>load</code>) fire on the <code>&lt;yurba-ep&gt;</code> element; <code>yurbaep.select</code> fires on the bound field so you can intercept insertion.</p>
+                <p class="doc-component-desc">All events are dispatched as bubbling <code>CustomEvent</code>s, namespaced under <code>yurba-ep.*</code>. Lifecycle events (<code>open</code>, <code>close</code>, <code>load</code>) fire on the <code>&lt;yurba-ep&gt;</code> element; <code>yurba-ep.select</code> fires on the bound field so you can intercept insertion.</p>
             </div>
 
             <div class="doc-section" id="events">
@@ -307,22 +307,22 @@ picker.bind(emojiBtn, messageInput)</code></pre>
                         <thead><tr><th>Event</th><th>Fires on</th><th>Description</th></tr></thead>
                         <tbody>
                             <tr>
-                                <td><a href="#event-select"><code>yurbaep.select</code></a></td>
+                                <td><a href="#event-select"><code>yurba-ep.select</code></a></td>
                                 <td>bound field</td>
                                 <td>An emoji was chosen. Always fires, before any built-in insertion.</td>
                             </tr>
                             <tr>
-                                <td><a href="#event-open"><code>yurbaep.open</code></a></td>
+                                <td><a href="#event-open"><code>yurba-ep.open</code></a></td>
                                 <td><code>&lt;yurba-ep&gt;</code></td>
                                 <td>The picker became visible.</td>
                             </tr>
                             <tr>
-                                <td><a href="#event-close"><code>yurbaep.close</code></a></td>
+                                <td><a href="#event-close"><code>yurba-ep.close</code></a></td>
                                 <td><code>&lt;yurba-ep&gt;</code></td>
                                 <td>The picker was hidden (outside click, scroll, ✕, trigger re-click, or <code>close()</code>).</td>
                             </tr>
                             <tr>
-                                <td><a href="#event-load"><code>yurbaep.load</code></a></td>
+                                <td><a href="#event-load"><code>yurba-ep.load</code></a></td>
                                 <td><code>&lt;yurba-ep&gt;</code></td>
                                 <td>The emoji JSON finished loading and the first tab rendered.</td>
                             </tr>
@@ -332,7 +332,7 @@ picker.bind(emojiBtn, messageInput)</code></pre>
             </div>
 
             <div class="doc-section" id="event-select">
-                <div class="doc-section-title">yurbaep.select</div>
+                <div class="doc-section-title">yurba-ep.select</div>
                 <div class="gap-stack">
                     <p class="note"><strong>Always</strong> fired on the <strong>bound field</strong> when an emoji is chosen, before any built-in insertion. The picker's own insertion is independent: <code>&lt;input&gt;</code> / <code>&lt;textarea&gt;</code> always get the <code>:code:</code> shortcode; a <code>contenteditable</code> target gets the emoji <code>&lt;img&gt;</code> only when <a href="#create"><code>insertImage</code></a> is on — otherwise the picker leaves it untouched, so you render the emoji yourself in this handler.</p>
                     <table class="api-table">
@@ -350,7 +350,7 @@ picker.bind(emojiBtn, messageInput)</code></pre>
 const editor = document.querySelector('#editor')
 picker.bind(emojiBtn, editor)
 
-editor.addEventListener('yurbaep.select', (e) =&gt; {
+editor.addEventListener('yurba-ep.select', (e) =&gt; {
     const { code, shortcode, src } = e.detail
 
     const img = document.createElement('img')
@@ -365,11 +365,11 @@ editor.addEventListener('yurbaep.select', (e) =&gt; {
             </div>
 
             <div class="doc-section" id="event-open">
-                <div class="doc-section-title">yurbaep.open</div>
+                <div class="doc-section-title">yurba-ep.open</div>
                 <div class="gap-stack">
                     <p class="note">Fired on the <code>&lt;yurba-ep&gt;</code> element when the picker becomes visible.</p>
                     <div class="code-block">
-                        <pre><code class="language-javascript">picker.addEventListener('yurbaep.open', () =&gt; {
+                        <pre><code class="language-javascript">picker.addEventListener('yurba-ep.open', () =&gt; {
     console.log('picker opened')
 })</code></pre>
                     </div>
@@ -377,11 +377,11 @@ editor.addEventListener('yurbaep.select', (e) =&gt; {
             </div>
 
             <div class="doc-section" id="event-close">
-                <div class="doc-section-title">yurbaep.close</div>
+                <div class="doc-section-title">yurba-ep.close</div>
                 <div class="gap-stack">
                     <p class="note">Fired on the <code>&lt;yurba-ep&gt;</code> element when the picker is hidden — by outside click, page scroll, the ✕ button, re-clicking the trigger, or a <code>close()</code> call.</p>
                     <div class="code-block">
-                        <pre><code class="language-javascript">picker.addEventListener('yurbaep.close', () =&gt; {
+                        <pre><code class="language-javascript">picker.addEventListener('yurba-ep.close', () =&gt; {
     console.log('picker closed')
 })</code></pre>
                     </div>
@@ -389,7 +389,7 @@ editor.addEventListener('yurbaep.select', (e) =&gt; {
             </div>
 
             <div class="doc-section" id="event-load">
-                <div class="doc-section-title">yurbaep.load</div>
+                <div class="doc-section-title">yurba-ep.load</div>
                 <div class="gap-stack">
                     <p class="note">Fired once on the <code>&lt;yurba-ep&gt;</code> element after the emoji JSON is fetched and the first tab is rendered.</p>
                     <table class="api-table">
@@ -399,7 +399,7 @@ editor.addEventListener('yurbaep.select', (e) =&gt; {
                         </tbody>
                     </table>
                     <div class="code-block">
-                        <pre><code class="language-javascript">picker.addEventListener('yurbaep.load', (e) =&gt; {
+                        <pre><code class="language-javascript">picker.addEventListener('yurba-ep.load', (e) =&gt; {
     console.log(`${e.detail.count} emojis ready`)
 })</code></pre>
                     </div>
@@ -460,7 +460,7 @@ editor.addEventListener('yurbaep.select', (e) =&gt; {
                             <tr>
                                 <td><code>animated</code> <span class="optional-badge">optional</span></td>
                                 <td><span class="type-badge">boolean</span></td>
-                                <td>Marks the emoji as animated (default <code>false</code>). Exposed as <code>animated</code> in the <a href="#event-select"><code>yurbaep.select</code></a> event detail so you can render it differently — the picker itself does not treat it specially.</td>
+                                <td>Marks the emoji as animated (default <code>false</code>). Exposed as <code>animated</code> in the <a href="#event-select"><code>yurba-ep.select</code></a> event detail so you can render it differently — the picker itself does not treat it specially.</td>
                             </tr>
                         </tbody>
                     </table>

@@ -52,22 +52,22 @@ The picker is created entirely from JavaScript via the static `YurbaEP.create()`
 
 ## Events
 
-All events bubble. `yurbaep.*` events fire on the picker element; `yurbaep.select` fires on the bound field.
+All events bubble. `yurba-ep.*` events fire on the picker element; `yurba-ep.select` fires on the bound field.
 
 | Event | Fired on | Detail |
 |---|---|---|
-| `yurbaep.select` | bound field | `{ code, shortcode, src, animated }` |
-| `yurbaep.open` | picker element | — |
-| `yurbaep.close` | picker element | — |
-| `yurbaep.load` | picker element | `{ count }` |
+| `yurba-ep.select` | bound field | `{ code, shortcode, src, animated }` |
+| `yurba-ep.open` | picker element | — |
+| `yurba-ep.close` | picker element | — |
+| `yurba-ep.load` | picker element | `{ count }` |
 
-`yurbaep.select` always fires (non-cancelable) whenever an emoji is selected, regardless of `insertImage`.
+`yurba-ep.select` always fires (non-cancelable) whenever an emoji is selected, regardless of `insertImage`.
 
 ## Insertion behavior
 
 - `<input>` / `<textarea>` — inserts `:code:` shortcode at caret.
 - `contenteditable` + `insertImage: true` — inserts `<img alt=":code:" data-emoji="code">` at caret.
-- `contenteditable` + `insertImage: false` — inserts nothing; handle via `yurbaep.select`.
+- `contenteditable` + `insertImage: false` — inserts nothing; handle via `yurba-ep.select`.
 
 ## CSS variables
 
