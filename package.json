@@ -1,6 +1,7 @@
 {
   "name": "yurba-ep",
   "version": "1.0.0",
+  "license": "MIT",
   "private": true,
   "scripts": {
     "build": "npm run build:js && npm run build:css",
