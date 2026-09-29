@@ -1,0 +1,17 @@
+/* Sheet */
+
+.y-ep-window .y-win__body {
+    display: flex;
+    padding: 0;
+    overflow: hidden;
+}
+
+.y-ep-window .y-ep {
+    position: static;
+    width: 100%;
+    height: min(420px, 60dvh);
+    border-radius: 0;
+    box-shadow: none;
+    transform: none;
+    opacity: 1;
+}

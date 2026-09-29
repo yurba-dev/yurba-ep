@@ -8,15 +8,23 @@ const picker = YurbaEP.create({
             id: 'yurba',
             html: '<span class="material-symbols-rounded">diamond</span>',
             emojis: [
-                { id: 'crystal', keywords: ['crystal', 'diamond', 'yurba'], src: 'https://cdn.yurba.one/static/emoji/yurba/png/crystal.png' }
+                { id: 'crystal', keywords: ['crystal', 'diamond', 'yurba'], src: 'https://yurba.one/static/emoji/yurba/png/crystal.png' }
             ]
         }
     ]
 })
 
-const autoGrow = el => {
+function autoGrow(el) {
     el.style.height = 'auto'
     el.style.height = el.scrollHeight + 'px'
+}
+
+function showValue(output, text) {
+    output.replaceChildren()
+    if (!text) return
+    const label = document.createElement('strong')
+    label.textContent = 'Value:'
+    output.append(label, ' ' + text)
 }
 
 const btn = document.querySelector('#demo-btn')
@@ -26,7 +34,7 @@ const output = document.querySelector('#demo-output')
 picker.bind(btn, input)
 input.addEventListener('input', () => {
     autoGrow(input)
-    output.innerHTML = input.value ? `<strong>Value:</strong> ${input.value}` : ''
+    showValue(output, input.value)
 })
 autoGrow(input)
 
@@ -36,7 +44,7 @@ const output3 = document.querySelector('#demo-output3')
 
 picker.bind(btn3, inputText)
 inputText.addEventListener('input', () => {
-    output3.innerHTML = inputText.value ? `<strong>Value:</strong> ${inputText.value}` : ''
+    showValue(output3, inputText.value)
 })
 
 const btn2 = document.querySelector('#demo-btn2')
@@ -48,7 +56,7 @@ editable.addEventListener('input', () => {
     const text = [...editable.childNodes].map(n =>
         n.nodeName == 'IMG' ? n.alt : n.textContent
     ).join('').trim()
-    output2.innerHTML = text ? `<strong>Value:</strong> ${text}` : ''
+    showValue(output2, text)
 })
 
 const sections = document.querySelectorAll('.doc-section[id]')

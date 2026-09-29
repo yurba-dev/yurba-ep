@@ -4,9 +4,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
-    "build": "npm run build:js && npm run build:css",
-    "build:js": "esbuild yurba-ep.js --bundle=false --minify --outfile=dist/yurba-ep.min.js",
-    "build:css": "esbuild yurba-ep.css --minify --outfile=dist/yurba-ep.min.css"
+    "build": "node build.js"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"

@@ -11,8 +11,24 @@ class YurbaEP extends HTMLElement {
         'Flags':                '<span class="material-symbols-rounded">flag</span>',
     }
 
-    static EMOJI_JSON = 'https://cdn.yurba.one/static/noto-emoji/emoji.json'
-    static NOTO_BASE  = 'https://cdn.yurba.one/static/noto-emoji/png/72/'
+    static EMOJI_JSON = '/static/emoji/noto/emoji.json'
+    static NOTO_BASE  = '/static/emoji/noto/png/'
+
+    // Replaced by the .ui build
+    static shell = {
+        show(picker) {
+            picker.style.display = 'flex'
+            picker.position()
+            void picker.offsetWidth
+            requestAnimationFrame(() => picker.classList.remove('is-hidden'))
+        },
+        hide(picker) {
+            picker.classList.add('is-hidden')
+            setTimeout(() => {
+                if (!picker.isOpen) picker.style.display = 'none'
+            }, 150)
+        },
+    }
 
     static create(config = {}) {
         const element = document.createElement('yurba-ep')
@@ -23,15 +39,22 @@ class YurbaEP extends HTMLElement {
     }
 
     connectedCallback() {
+        this.bindDocument()
+        if (this.ready) return
+        this.ready = true
         const config = this.initConfig || {}
 
         this.classList.add('y-ep', 'is-hidden')
         this.style.display = 'none'
 
         this.pickerTitle = config.title ?? 'Pick an emoji'
+        this.closeLabel = config.closeLabel ?? 'Close'
+        this.allLabel = config.allLabel ?? 'All'
+        this.searchLabel = config.searchLabel ?? 'Search...'
         this.emojiJson = config.emojiJson ?? YurbaEP.EMOJI_JSON
         this.notoBaseUrl = config.notoBase ?? YurbaEP.NOTO_BASE
         this.groupHtml = Object.assign({}, YurbaEP.GROUP_HTML, config.groupHtml || {})
+        this.icons = config.icons || {}
         this.insertImage = config.insertImage ?? false
         this.customEmojis = config.customEmojis || []
         this.chunks = {}
@@ -54,29 +77,43 @@ class YurbaEP extends HTMLElement {
         this.bindClose()
         this.bindSearch()
         this.bindScroll()
-        this.bindOutsideClick()
-        this.bindScrollClose()
+        this.addEventListener('keydown', event => this.pressOnKey(event))
+    }
+
+    // The .ui shell moves the picker into a sheet and back, so this runs on every reconnect
+    disconnectedCallback() {
+        this.connection?.abort()
+        this.connection = null
+    }
+
+    bindDocument() {
+        if (this.connection) return
+        this.connection = new AbortController()
+        const signal = this.connection.signal
+        this.bindOutsideClick(signal)
+        this.bindScrollClose(signal)
+        this.bindKeys(signal)
     }
 
     template() {
         return `
             <div class="y-ep__header">
-                <p class="y-ep__title">${this.pickerTitle}</p>
-                <button class="y-ep__close" data-action="close">
-                    <span class="material-symbols-rounded">close</span>
+                <p class="y-ep__title">${this.attribute(this.pickerTitle)}</p>
+                <button class="y-ep__close" data-action="close" aria-label="${this.attribute(this.closeLabel)}">
+                    ${this.icons.close ?? '<span class="material-symbols-rounded">close</span>'}
                 </button>
             </div>
             <div class="y-ep__divider"></div>
             <div class="y-ep__categories-wrap">
                 <div class="y-ep__categories">
-                    <div class="y-ep__category" data-tab="all">${this.groupHtml['all'] ?? '<span class="material-symbols-rounded">more_horiz</span>'}</div>
+                    <div class="y-ep__category" data-tab="all" role="button" tabindex="0" aria-label="${this.attribute(this.allLabel)}">${this.icons.all ?? this.groupHtml['all'] ?? '<span class="material-symbols-rounded">more_horiz</span>'}</div>
                 </div>
             </div>
             <div class="y-ep__divider"></div>
             <div class="y-ep__search-wrap">
                 <div class="y-ep__search-inner">
-                    <span class="y-ep__search-icon material-symbols-rounded">search</span>
-                    <input class="y-ep__search" placeholder="Search...">
+                    ${this.searchIcon()}
+                    <input class="y-ep__search" placeholder="${this.attribute(this.searchLabel)}" aria-label="${this.attribute(this.searchLabel)}">
                 </div>
             </div>
             <div class="y-ep__body">
@@ -86,6 +123,13 @@ class YurbaEP extends HTMLElement {
                 <div class="y-ep__gradient"></div>
                 <div class="y-ep__loader"></div>
             </div>`
+    }
+
+    // The default stays one span as before; a custom icon gets the styling class on a wrapper
+    searchIcon() {
+        if (this.icons.search == null) return '<span class="y-ep__search-icon material-symbols-rounded">search</span>'
+
+        return `<span class="y-ep__search-icon">${this.icons.search}</span>`
     }
 
     bindCategories() {
@@ -119,24 +163,47 @@ class YurbaEP extends HTMLElement {
         })
     }
 
-    bindOutsideClick() {
+    bindOutsideClick(signal) {
         document.addEventListener('click', event => {
             if (
                 this.isOpen &&
                 !this.contains(event.target) &&
+                !this.variantPopup?.contains(event.target) &&
                 (!this.activator || !this.activator.contains(event.target))
             ) {
                 this.close()
             }
-        })
+        }, { signal })
     }
 
-    bindScrollClose() {
+    bindScrollClose(signal) {
         document.addEventListener('scroll', event => {
-            if (!this.isOpen) return
-            if (this.contains(event.target)) return
-            this.close()
-        }, true)
+            if (!this.isOpen || this.variantPopup?.contains(event.target)) return
+            this.closeVariantPopup()
+            if (this.docked || this.contains(event.target)) return
+
+            const rect = this.activator?.isConnected ? this.activator.getBoundingClientRect() : null
+            const visible = rect && rect.bottom > 0 && rect.top < window.innerHeight && rect.right > 0 && rect.left < window.innerWidth
+            if (visible) this.position()
+            else this.close()
+        }, { capture: true, signal })
+    }
+
+    bindKeys(signal) {
+        document.addEventListener('keydown', event => {
+            if (event.key != 'Escape' || !this.isOpen) return
+            event.preventDefault()
+            event.stopImmediatePropagation()
+            if (this.variantPopup) this.closeVariantPopup()
+            else this.close()
+        }, { capture: true, signal })
+    }
+
+    pressOnKey(event) {
+        if (event.key != 'Enter' && event.key != ' ') return
+        if (event.target.getAttribute('role') != 'button') return
+        event.preventDefault()
+        event.target.click()
     }
 
     close() {
@@ -147,20 +214,18 @@ class YurbaEP extends HTMLElement {
         this.activator = null
         this.input = null
 
-        this.classList.add('is-hidden')
-        setTimeout(() => {
-            if (!this.isOpen) this.style.display = 'none'
-        }, 150)
-
-        if (wasOpen) this.emit('close')
+        if (!wasOpen) return
+        YurbaEP.shell.hide(this)
+        this.emit('close')
     }
 
     emit(name, detail = {}) {
         this.dispatchEvent(new CustomEvent(`yurba-ep.${name}`, { bubbles: true, detail }))
     }
 
-    open() {
-        if (this.loaded) { this.show(); return }
+    open(only = null) {
+        this.only = only?.length ? only : null
+        if (this.loaded) { this.show(); this.applyOnly(); return }
 
         if (!this.emojiJson) {
             console.warn('[yurba-ep] Emoji JSON not configured. Pass emojiJson to YurbaEP.create().')
@@ -170,7 +235,7 @@ class YurbaEP extends HTMLElement {
         this.show()
         this.showLoader()
 
-        fetch(this.emojiJson)
+        this.loading ??= fetch(this.emojiJson)
             .then(response => {
                 if (!response.ok) throw new Error(`[yurba-ep] Failed to load emoji JSON: ${response.status} ${response.statusText}`)
                 return response.json()
@@ -181,9 +246,11 @@ class YurbaEP extends HTMLElement {
                 this.chunks.all = this.chunkArray(this.allItems, 100)
                 this.loaded = true
                 this.selectTab('all')
+                this.applyOnly()
                 this.emit('load', { count: this.allItems.filter(item => item.type == 'emoji').length })
             })
             .catch(error => {
+                this.loading = null
                 this.hideLoader()
                 console.error(error)
             })
@@ -192,17 +259,14 @@ class YurbaEP extends HTMLElement {
     show() {
         const wasHidden = !this.isOpen
         this.isOpen = true
-        this.style.display = 'flex'
-        this.position()
-
-        void this.offsetWidth
-        requestAnimationFrame(() => this.classList.remove('is-hidden'))
+        YurbaEP.shell.show(this)
+        if (this.loaded) this.ensureFilled(this.activeTab)
 
         if (wasHidden) this.emit('open')
     }
 
     position() {
-        if (!this.activator) return
+        if (!this.activator || this.docked) return
 
         const rect = this.activator.getBoundingClientRect()
         const width = this.offsetWidth
@@ -229,10 +293,11 @@ class YurbaEP extends HTMLElement {
         groups.forEach(group => {
             const tabId = this.groupToTabId(group.group)
             const iconHtml = this.groupHtml[group.group]
+                ?? this.icons.category
                 ?? '<span class="material-symbols-rounded">emoji_emotions</span>'
 
             this.categories.insertAdjacentHTML('beforeend',
-                `<div class="y-ep__category" data-tab="${tabId}">${iconHtml}</div>`)
+                `<div class="y-ep__category" data-tab="${tabId}" role="button" tabindex="0" aria-label="${this.attribute(group.group)}">${iconHtml}</div>`)
             this.lists.insertAdjacentHTML('beforeend',
                 `<div class="y-ep__list" data-tab="${tabId}" data-page="0"></div>`)
 
@@ -250,7 +315,7 @@ class YurbaEP extends HTMLElement {
                     codepoints: entry.base,
                     keywords: [
                         ...entry.shortcodes.map(shortcode => shortcode.replace(/:/g, '')),
-                        ...entry.emoticons,
+                        ...(entry.emoticons || []),
                     ],
                     alternates: entry.alternates?.length > 1 ? entry.alternates.slice(1) : null,
                 }
@@ -264,6 +329,32 @@ class YurbaEP extends HTMLElement {
         this.bindCategories()
     }
 
+    applyOnly() {
+        this.classList.toggle('y-ep--only', !!this.only)
+        this.lists.querySelector('.y-ep__list[data-tab="only"]')?.remove()
+        if (!this.only) {
+            if (this.activeTab == 'only') this.selectTab('all')
+            return
+        }
+
+        function bare(native) {
+            return native.replace(/\uFE0F/g, '')
+        }
+        const known = new Map(this.allItems.filter(item => item.codepoints).map(item => [bare(String.fromCodePoint(...item.codepoints)), item]))
+        this.onlyItems = this.only.map(native => {
+            const item = known.get(bare(native))
+            // The given codepoints, so the pick is exactly what was allowed
+            return { type: 'emoji', code: item?.code ?? native, codepoints: [...native].map(char => char.codePointAt(0)), keywords: item?.keywords ?? [] }
+        })
+        this.chunks.only = this.chunkArray(this.onlyItems, 100)
+        this.lists.insertAdjacentHTML('beforeend', '<div class="y-ep__list" data-tab="only" data-page="0"></div>')
+        this.selectTab('only')
+    }
+
+    attribute(text) {
+        return String(text ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+    }
+
     groupToTabId(name) {
         return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
     }
@@ -273,7 +364,7 @@ class YurbaEP extends HTMLElement {
         const items = [head]
         this.allItems.push(head)
 
-        category.emojis.forEach(emoji => {
+        ;(category.emojis || []).forEach(emoji => {
             if (!emoji.src) return
             const item = {
                 type: 'emoji',
@@ -291,10 +382,10 @@ class YurbaEP extends HTMLElement {
 
         if (category.html) {
             this.categories.insertAdjacentHTML('beforeend',
-                `<div class="y-ep__category" data-tab="${category.id}">${category.html}</div>`)
+                `<div class="y-ep__category" data-tab="${this.attribute(category.id)}" role="button" tabindex="0" aria-label="${this.attribute(category.name)}">${category.html}</div>`)
             this.bindCategories()
             this.lists.insertAdjacentHTML('beforeend',
-                `<div class="y-ep__list" data-tab="${category.id}" data-page="0"></div>`)
+                `<div class="y-ep__list" data-tab="${this.attribute(category.id)}" data-page="0"></div>`)
         }
     }
 
@@ -362,10 +453,12 @@ class YurbaEP extends HTMLElement {
             this.lists.appendChild(results)
         }
 
+        // Lottie keeps animations registered until destroyed
+        results.querySelectorAll('.y-ep__emoji--lottie').forEach(element => element._lottie?.destroy())
         results.innerHTML = ''
         results.style.display = 'flex'
 
-        const matches = this.allItems.filter(item =>
+        const matches = (this.only ? this.onlyItems : this.allItems).filter(item =>
             item.type == 'emoji' &&
             item.keywords?.some(keyword => keyword.includes(query))
         ).slice(0, 80)
@@ -374,37 +467,54 @@ class YurbaEP extends HTMLElement {
     }
 
     makeEmojiElement(item) {
-        const element = document.createElement('img')
-        element.className = 'y-ep__emoji'
+        let element
 
-        if (item.customSrc) {
-            element.src = item.customSrc
+        if (item.customSrc && item.animated && window.YurbaLib?.setLottieStill && window.lottie) {
+            element = document.createElement('div')
+            element.className = 'y-ep__emoji y-ep__emoji--lottie'
+            const name = item.customSrc.split('/').pop().replace('.json', '')
+            YurbaLib.setLottieStill(name, element, 'cdn')
         } else {
-            element.src = this.notoUrl(item.codepoints)
-            element.onerror = () => { element.style.display = 'none' }
+            element = document.createElement('img')
+            element.className = 'y-ep__emoji'
+            if (item.customSrc) {
+                element.src = item.customSrc
+            } else {
+                element.src = this.notoUrl(item.codepoints)
+                element.onerror = () => { element.style.display = 'none' }
+            }
         }
 
         element.dataset.code = item.code
+        element.setAttribute('role', 'button')
+        element.tabIndex = 0
+        const label = item.codepoints ? String.fromCodePoint(...item.codepoints) : item.code
+        element.setAttribute('aria-label', label)
+        if (element.tagName == 'IMG') element.alt = label
         element.dataset.names = item.keywords?.join(',') ?? item.code
+        // Keeps the bound field's caret
+        element.addEventListener('mousedown', event => event.preventDefault())
         element.addEventListener('click', event => {
             if (item.alternates?.length) {
                 event.stopPropagation()
                 this.showVariantPopup(item, element)
             } else {
-                this.insert(item.code, element.src, item.animated)
+                this.insert(item.code, item.customSrc || element.src, item.animated, item.codepoints)
             }
         })
 
         return element
     }
 
-    insert(code, src, animated = false) {
+    insert(code, src, animated = false, codepoints = null) {
         const target = this.input
         if (!target) return
 
+        const native = codepoints?.length ? String.fromCodePoint(...codepoints) : null
+
         target.dispatchEvent(new CustomEvent('yurba-ep.select', {
             bubbles: true,
-            detail: { code, shortcode: `:${code}:`, src, animated: !!animated },
+            detail: { code, shortcode: `:${code}:`, src, animated: !!animated, native },
         }))
 
         if (target.isContentEditable) {
@@ -456,25 +566,12 @@ class YurbaEP extends HTMLElement {
         const popup = document.createElement('div')
         popup.className = 'y-ep__variants'
 
-        const createImage = (codepoints, code) => {
-            const image = document.createElement('img')
-            image.className = 'y-ep__emoji'
-            image.src = this.notoUrl(codepoints)
-            image.onerror = () => { image.style.display = 'none' }
-            image.addEventListener('click', event => {
-                event.stopPropagation()
-                this.insert(code, image.src)
-                this.closeVariantPopup()
-            })
-
-            return image
-        }
-
-        popup.appendChild(createImage(item.codepoints, item.code))
-        item.alternates.forEach((alternateCodepoints, index) => {
-            popup.appendChild(createImage(alternateCodepoints, `${item.code}_${index + 1}`))
+        popup.appendChild(this.makeVariantImage(item.codepoints, item.code))
+        item.alternates.forEach(alternateCodepoints => {
+            popup.appendChild(this.makeVariantImage(alternateCodepoints, item.code))
         })
 
+        popup.addEventListener('keydown', event => this.pressOnKey(event))
         document.body.appendChild(popup)
         this.variantPopup = popup
 
@@ -497,6 +594,24 @@ class YurbaEP extends HTMLElement {
         }
 
         setTimeout(() => document.addEventListener('click', this.variantClickAway), 0)
+    }
+
+    makeVariantImage(codepoints, code) {
+        const image = document.createElement('img')
+        image.className = 'y-ep__emoji'
+        image.src = this.notoUrl(codepoints)
+        image.alt = String.fromCodePoint(...codepoints)
+        image.setAttribute('role', 'button')
+        image.tabIndex = 0
+        image.onerror = () => { image.style.display = 'none' }
+        image.addEventListener('mousedown', event => event.preventDefault())
+        image.addEventListener('click', event => {
+            event.stopPropagation()
+            this.insert(code, image.src, false, codepoints)
+            this.closeVariantPopup()
+        })
+
+        return image
     }
 
     closeVariantPopup() {
@@ -535,7 +650,7 @@ class YurbaEP extends HTMLElement {
 
     ensureFilled(tabId) {
         const tab = this.lists.querySelector(`.y-ep__list[data-tab="${tabId}"]`)
-        if (!tab) return
+        if (!tab || !this.isOpen || !this.lists.clientHeight || tab.style.display == 'none') return
         let guard = 0
         while (guard++ < 100 && this.lists.scrollHeight <= this.lists.clientHeight) {
             const page = Number(tab.dataset.page)
