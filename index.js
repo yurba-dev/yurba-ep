@@ -8,7 +8,7 @@ const picker = YurbaEP.create({
             id: 'yurba',
             html: '<span class="material-symbols-rounded">diamond</span>',
             emojis: [
-                { id: 'crystal', keywords: ['crystal', 'diamond', 'yurba'], src: 'https://yurba.one/static/emoji/yurba/png/crystal.png' }
+                { id: 'crystal', keywords: ['crystal', 'diamond', 'yurba'], src: 'https://cdn.yurba.one/static/emoji/yurba/png/crystal.png' }
             ]
         }
     ]

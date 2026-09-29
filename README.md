@@ -71,15 +71,15 @@ The picker is created entirely from JavaScript via the static `YurbaEP.create()`
 | `closeLabel` | string | `'Close'` | Accessible name of the close button |
 | `allLabel` | string | `'All'` | Accessible name of the "all" category tab |
 | `searchLabel` | string | `'Search...'` | Placeholder and accessible name of the search field |
-| `emojiJson` | string | `/static/emoji/noto/emoji.json` | URL to emoji JSON |
-| `notoBase` | string | `/static/emoji/noto/png/` | Base URL for Noto PNG files |
+| `emojiJson` | string | `https://cdn.yurba.one/static/emoji/noto/emoji.json` | URL to emoji JSON |
+| `notoBase` | string | `https://cdn.yurba.one/static/emoji/noto/png/` | Base URL for Noto PNG files |
 | `groupHtml` | object | built-in icons | Tab icons of named groups, see [Icons](#icons) |
 | `icons` | object | built-in icons | Close, search, "all" tab and fallback tab icons, see [Icons](#icons) |
 | `insertImage` | boolean | `false` | Insert `<img>` into `contenteditable` on selection |
 | `customEmojis` | array | `[]` | Custom emoji categories, see [Animated custom emoji](#animated-custom-emoji) |
 | `lottie` | object | `window.lottie` | The [lottie-web](https://github.com/airbnb/lottie-web) module, when it is imported rather than loaded as a global |
 
-The default `emojiJson` and `notoBase` are relative paths, so they only resolve on a page served by yurba.one itself. Other sites must pass both.
+By default `emojiJson` and `notoBase` point to the Yurba CDN, which lets any site load them. Pass both to serve the emoji from your own server.
 
 ### Animated custom emoji
 

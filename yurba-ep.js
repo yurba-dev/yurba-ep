@@ -11,8 +11,8 @@ class YurbaEP extends HTMLElement {
         'Flags':                '<span class="material-symbols-rounded">flag</span>',
     }
 
-    static EMOJI_JSON = '/static/emoji/noto/emoji.json'
-    static NOTO_BASE  = '/static/emoji/noto/png/'
+    static EMOJI_JSON = 'https://cdn.yurba.one/static/emoji/noto/emoji.json'
+    static NOTO_BASE  = 'https://cdn.yurba.one/static/emoji/noto/png/'
 
     // Replaced by the .ui build
     static shell = {

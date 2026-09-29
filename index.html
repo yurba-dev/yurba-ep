@@ -216,14 +216,14 @@ picker.bind(
                             <tr>
                                 <td><code>emojiJson</code> <span class="optional-badge">optional</span></td>
                                 <td><span class="type-badge">string</span></td>
-                                <td><code>/static/emoji/noto/emoji.json</code></td>
-                                <td>URL to the emoji JSON file. The default is relative, so it only resolves on a page served by yurba.one itself; other sites must pass it.</td>
+                                <td><code>https://cdn.yurba.one/static/emoji/noto/emoji.json</code></td>
+                                <td>URL to the emoji JSON file. The default is on the Yurba CDN, which lets any site load it.</td>
                             </tr>
                             <tr>
                                 <td><code>notoBase</code> <span class="optional-badge">optional</span></td>
                                 <td><span class="type-badge">string</span></td>
-                                <td><code>/static/emoji/noto/png/</code></td>
-                                <td>Base URL for Noto Color Emoji PNGs. Relative like <code>emojiJson</code>, so other sites must pass it too.</td>
+                                <td><code>https://cdn.yurba.one/static/emoji/noto/png/</code></td>
+                                <td>Base URL for Noto Color Emoji PNGs, on the Yurba CDN like <code>emojiJson</code>.</td>
                             </tr>
                             <tr>
                                 <td><code>groupHtml</code> <span class="optional-badge">optional</span></td>
@@ -266,8 +266,8 @@ picker.bind(emojiBtn, messageInput)</code></pre>
                     <div class="code-block">
                         <pre><code class="language-javascript">const picker = YurbaEP.create({
     title:       'Choose emoji',
-    emojiJson:   'https://yurba.one/static/emoji/noto/emoji.json',
-    notoBase:    'https://yurba.one/static/emoji/noto/png/',
+    emojiJson:   'https://cdn.yurba.one/static/emoji/noto/emoji.json',
+    notoBase:    'https://cdn.yurba.one/static/emoji/noto/png/',
     insertImage: true,
     groupHtml: {
         'all':   '&lt;span class="material-symbols-rounded"&gt;more_horiz&lt;/span&gt;',
@@ -282,7 +282,7 @@ picker.bind(emojiBtn, messageInput)</code></pre>
                 {
                     id: 'crystal',
                     keywords: ['crystal', 'diamond', 'yurba'],
-                    src: 'https://yurba.one/static/emoji/yurba/png/crystal.png',
+                    src: 'https://cdn.yurba.one/static/emoji/yurba/png/crystal.png',
                     animated: false
                 }
             ]
@@ -518,12 +518,12 @@ editor.addEventListener('yurba-ep.select', (e) =&gt; {
                 {
                     id: 'crystal',
                     keywords: ['crystal', 'diamond', 'yurba'],
-                    src: 'https://yurba.one/static/emoji/yurba/png/crystal.png',
+                    src: 'https://cdn.yurba.one/static/emoji/yurba/png/crystal.png',
                     animated: false
                 },
                 {
                     id: 'cat',
-                    src: 'https://yurba.one/static/emoji/yurba/animated/cat.json',
+                    src: 'https://cdn.yurba.one/static/emoji/yurba/animated/cat.json',
                     animated: true,
                     still: 'https://example.com/emoji/cat.png'
                 },
@@ -599,7 +599,7 @@ editor.addEventListener('yurba-ep.select', (e) =&gt; {
                         <pre><code class="language-javascript">const picker = YurbaEP.create({
     groupHtml: {
         'all':   '&lt;span class="material-symbols-rounded"&gt;more_horiz&lt;/span&gt;',
-        'Flags': '&lt;img src="https://yurba.one/static/emoji/yurba/png/crystal.png" width="20" height="20"&gt;',
+        'Flags': '&lt;img src="https://cdn.yurba.one/static/emoji/yurba/png/crystal.png" width="20" height="20"&gt;',
     },
 })</code></pre>
                     </div>
