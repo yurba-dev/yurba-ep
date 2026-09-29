@@ -273,6 +273,10 @@
     object-fit: contain;
 }
 
+.y-ep__emoji--missing {
+    display: none;
+}
+
 .y-ep__emoji:hover {
     background: var(--y-ep-hover);
 }

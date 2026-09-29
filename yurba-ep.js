@@ -57,6 +57,7 @@ class YurbaEP extends HTMLElement {
         this.icons = config.icons || {}
         this.insertImage = config.insertImage ?? false
         this.customEmojis = config.customEmojis || []
+        this.lottie = config.lottie ?? null
         this.chunks = {}
         this.allItems = []
         this.loaded = false
@@ -372,6 +373,7 @@ class YurbaEP extends HTMLElement {
                 codepoints: null,
                 customSrc: emoji.src,
                 animated: !!emoji.animated,
+                still: emoji.still || null,
                 keywords: [emoji.id, ...(emoji.keywords || [])]
             }
             items.push(item)
@@ -469,15 +471,22 @@ class YurbaEP extends HTMLElement {
     makeEmojiElement(item) {
         let element
 
-        if (item.customSrc && item.animated && window.YurbaLib?.setLottieStill && window.lottie) {
+        // An animated one is its Lottie file, shown still on its first frame. Without lottie-web its still
+        // picture stands in, and with neither it is left out rather than shown broken.
+        const player = item.animated ? this.lottie ?? window.lottie : null
+        if (item.customSrc && item.animated && player) {
             element = document.createElement('div')
             element.className = 'y-ep__emoji y-ep__emoji--lottie'
-            const name = item.customSrc.split('/').pop().replace('.json', '')
-            YurbaLib.setLottieStill(name, element, 'cdn')
+            const animation = player.loadAnimation({ container: element, renderer: 'svg', loop: false, autoplay: false, path: item.customSrc })
+            animation.addEventListener('DOMLoaded', () => animation.goToAndStop(0, true))
+            element._lottie = animation
         } else {
             element = document.createElement('img')
             element.className = 'y-ep__emoji'
-            if (item.customSrc) {
+            if (item.customSrc && item.animated) {
+                if (item.still) element.src = item.still
+                else element.classList.add('y-ep__emoji--missing')
+            } else if (item.customSrc) {
                 element.src = item.customSrc
             } else {
                 element.src = this.notoUrl(item.codepoints)

@@ -244,6 +244,12 @@ picker.bind(
                                 <td>Custom emoji categories appended after the standard ones. See <a href="#custom-emojis">Custom emojis</a>.</td>
                             </tr>
                             <tr>
+                                <td><code>lottie</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">object</span></td>
+                                <td><code>window.lottie</code></td>
+                                <td>The <a href="https://github.com/airbnb/lottie-web" target="_blank" rel="noopener">lottie-web</a> module, for a page that imports it rather than loading it as a global. Only animated custom emoji use it, see <a href="#custom-emojis">Custom emojis</a>.</td>
+                            </tr>
+                            <tr>
                                 <td><code>insertImage</code> <span class="optional-badge">optional</span></td>
                                 <td><span class="type-badge">boolean</span></td>
                                 <td><code>false</code></td>
@@ -515,6 +521,12 @@ editor.addEventListener('yurba-ep.select', (e) =&gt; {
                     src: 'https://yurba.one/static/emoji/yurba/png/crystal.png',
                     animated: false
                 },
+                {
+                    id: 'cat',
+                    src: 'https://yurba.one/static/emoji/yurba/animated/cat.json',
+                    animated: true,
+                    still: 'https://example.com/emoji/cat.png'
+                },
                 ...
             ]
         }
@@ -532,7 +544,7 @@ editor.addEventListener('yurba-ep.select', (e) =&gt; {
                             <tr>
                                 <td><code>src</code> <span class="required-badge">required</span></td>
                                 <td><span class="type-badge">string</span></td>
-                                <td>Image URL, rendered as an <code>&lt;img&gt;</code>. Any format (PNG, SVG, GIF, WebP).</td>
+                                <td>Image URL, rendered as an <code>&lt;img&gt;</code>. Any format (PNG, SVG, GIF, WebP). For an animated emoji, the URL of its Lottie JSON.</td>
                             </tr>
                             <tr>
                                 <td><code>keywords</code> <span class="optional-badge">optional</span></td>
@@ -542,7 +554,12 @@ editor.addEventListener('yurba-ep.select', (e) =&gt; {
                             <tr>
                                 <td><code>animated</code> <span class="optional-badge">optional</span></td>
                                 <td><span class="type-badge">boolean</span></td>
-                                <td>Marks the emoji as animated (default <code>false</code>). Exposed as <code>animated</code> in the <a href="#event-select"><code>yurba-ep.select</code></a> event detail so you can render it differently - the picker itself does not treat it specially.</td>
+                                <td>Marks the emoji as animated (default <code>false</code>): <code>src</code> is then a Lottie JSON file, which the picker shows still, on its first frame, so the grid stays calm. Exposed as <code>animated</code> in the <a href="#event-select"><code>yurba-ep.select</code></a> event detail so you can play it where it is used.</td>
+                            </tr>
+                            <tr>
+                                <td><code>still</code> <span class="optional-badge">optional</span></td>
+                                <td><span class="type-badge">string</span></td>
+                                <td>An animated emoji's first frame as a plain picture. <a href="https://github.com/airbnb/lottie-web" target="_blank" rel="noopener">lottie-web</a> is optional: with it on the page (the <code>lottie</code> global or the <code>lottie</code> option) the picker draws the frame from the JSON; without it the picker shows <code>still</code>, and an animated emoji with no <code>still</code> is left out.</td>
                             </tr>
                         </tbody>
                     </table>

@@ -76,9 +76,28 @@ The picker is created entirely from JavaScript via the static `YurbaEP.create()`
 | `groupHtml` | object | built-in icons | Tab icons of named groups, see [Icons](#icons) |
 | `icons` | object | built-in icons | Close, search, "all" tab and fallback tab icons, see [Icons](#icons) |
 | `insertImage` | boolean | `false` | Insert `<img>` into `contenteditable` on selection |
-| `customEmojis` | array | `[]` | Custom emoji categories |
+| `customEmojis` | array | `[]` | Custom emoji categories, see [Animated custom emoji](#animated-custom-emoji) |
+| `lottie` | object | `window.lottie` | The [lottie-web](https://github.com/airbnb/lottie-web) module, when it is imported rather than loaded as a global |
 
 The default `emojiJson` and `notoBase` are relative paths, so they only resolve on a page served by yurba.one itself. Other sites must pass both.
+
+### Animated custom emoji
+
+A custom emoji is `{ id, src, keywords?, animated?, still? }`. With `animated: true` its `src` is a Lottie JSON file, and the picker shows it still, on its first frame, so the grid stays calm. Playing it where it is used is up to the page: the `yurba-ep.select` event says `animated`.
+
+lottie-web is optional. When it is on the page (the `lottie` global, or the `lottie` option) the picker draws the first frame from the JSON. Without it the picker shows `still`, a plain picture of that frame, and an animated emoji with no `still` is left out of the picker.
+
+```js
+YurbaEP.create({
+    customEmojis: [{
+        id: 'yurba', name: 'Yurba', html: '<span class="material-symbols-rounded">diamond</span>',
+        emojis: [
+            { id: 'crystal', src: '/emoji/crystal.png' },
+            { id: 'cat', src: '/emoji/cat.json', animated: true, still: '/emoji/cat.png' },
+        ],
+    }],
+})
+```
 
 ### Instance
 
